@@ -19,6 +19,7 @@ from app.config import get_settings
 from app.events.bus import BUS
 from app.events.recorder import RunRecorder
 from app.events.replay import RunReplayer
+from app.fixer.github import get_fix_artifacts, get_pr_ref
 from app.logging import configure_logging
 
 configure_logging()
@@ -148,3 +149,16 @@ def chaos_heal(body: ChaosHealRequest) -> dict[str, Any]:
 def chaos_status() -> dict[str, Any]:
     """Return chaos engine status."""
     return chaos_engine.status().model_dump(mode="json")
+
+
+@app.get("/fixes/{run_id}")
+def get_fix(run_id: str) -> dict[str, Any]:
+    """Return generated fix artifacts for a run."""
+    artifacts = get_fix_artifacts(run_id)
+    if artifacts is None:
+        raise HTTPException(status_code=404, detail="Fix not found")
+    return {
+        "run_id": run_id,
+        "pr_ref": get_pr_ref(run_id),
+        "artifacts": artifacts.model_dump(mode="json"),
+    }
