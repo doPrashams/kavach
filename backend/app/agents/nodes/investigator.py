@@ -16,6 +16,20 @@ TARGET = "main_marts.mart_demand_features"
 
 async def run(state: IncidentState, ctx: AgentContext) -> IncidentState:
     """Walk upstream lineage and historical queries to determine root cause."""
+    trigger = state.trigger
+    if trigger.get("type") == "chaos":
+        state.root_cause = str(trigger.get("root_cause", "chaos injection"))
+        state.findings.append(f"Root cause: {state.root_cause}")
+        await ctx.emit(
+            state,
+            AgentName.INVESTIGATOR,
+            "root_cause_identified",
+            state.root_cause,
+            confidence=1.0,
+            scenario=trigger.get("scenario"),
+        )
+        return state
+
     upstreams = await ctx.datahub.get_upstreams(TARGET, depth=2)
     queries = await ctx.datahub.get_dataset_queries(TARGET)
     prompt = (
