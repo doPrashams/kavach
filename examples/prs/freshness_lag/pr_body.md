@@ -1,8 +1,8 @@
 ## Fix: freshness lag on orders feed
 
-**DataHub incident:** urn:li:incident:freshness_lag
+**DataHub incident:** urn:li:incident:239d2ce1-f7f7-46ff-8cf0-de4248f34134
 **Root cause:** Orders feed stopped updating; mart_daily_revenue freshness exceeded SLA
-**Blast radius:** n/a
+**Blast radius:** prod
 
 ### Changes
 - Add freshness SLA on `raw.orders` in sources.yml
