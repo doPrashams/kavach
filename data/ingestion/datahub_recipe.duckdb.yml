@@ -1,0 +1,16 @@
+# DataHub DuckDB SQL ingestion — raw table schemas and profiling.
+source:
+  type: duckdb
+  config:
+    database_path: ../warehouse.duckdb
+    schema_pattern:
+      allow:
+        - raw
+        - main_staging
+        - main_marts
+
+sink:
+  type: datahub-rest
+  config:
+    server: "${DATAHUB_GMS_URL}"
+    token: "${DATAHUB_TOKEN}"

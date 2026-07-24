@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Raw retail seed tables loaded from CSV
+    schema: raw
+    tables:
+      - name: orders
+        description: Customer purchase orders
+      - name: order_items
+        description: Line items per order
+      - name: products
+        description: Product catalog
+      - name: suppliers
+        description: Supplier master
+      - name: customers
+        description: Customer master

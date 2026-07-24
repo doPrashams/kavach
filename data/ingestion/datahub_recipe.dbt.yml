@@ -1,0 +1,14 @@
+# DataHub dbt ingestion recipe — reads dbt artifacts and emits metadata to GMS.
+source:
+  type: dbt
+  config:
+    manifest_path: ../demo_pipeline_seed/target/manifest.json
+    catalog_path: ../demo_pipeline_seed/target/catalog.json
+    target_platform: duckdb
+    env: PROD
+
+sink:
+  type: datahub-rest
+  config:
+    server: "${DATAHUB_GMS_URL}"
+    token: "${DATAHUB_TOKEN}"

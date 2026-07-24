@@ -1,0 +1,61 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: Cleaned orders with typed dates
+    columns:
+      - name: order_id
+        description: Primary key
+        tests: [unique, not_null]
+      - name: order_date
+        description: Order placement date
+        tests: [not_null]
+  - name: stg_order_items
+    description: Cleaned order line items
+    columns:
+      - name: order_item_id
+        tests: [unique, not_null]
+  - name: stg_products
+    description: Cleaned product catalog
+    columns:
+      - name: product_id
+        tests: [unique, not_null]
+  - name: stg_suppliers
+    description: Cleaned supplier dimension
+    columns:
+      - name: supplier_id
+        tests: [unique, not_null]
+  - name: stg_customers
+    description: Cleaned customer dimension
+    columns:
+      - name: customer_id
+        tests: [unique, not_null]
+  - name: mart_daily_revenue
+    description: Daily revenue rollup for dashboards
+    columns:
+      - name: order_date
+        tests: [not_null]
+      - name: gross_revenue
+        description: Sum of completed order line totals
+  - name: mart_supplier_reliability
+    description: Supplier reliability metrics for ops monitoring
+    columns:
+      - name: supplier_id
+        tests: [unique, not_null]
+  - name: mart_demand_features
+    description: Feature mart for demand forecasting (H02)
+    columns:
+      - name: product_id
+        tests: [not_null]
+      - name: feature_date
+        tests: [not_null]
+      - name: dow
+        description: Day of week (0=Mon)
+      - name: lag_7_qty
+        description: Quantity sold 7 days prior
+      - name: rolling_28_avg
+        description: 28-day rolling average quantity
+      - name: supplier_reliability
+        description: Upstream supplier reliability score
+      - name: next_day_qty
+        description: Target — quantity sold next day

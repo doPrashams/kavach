@@ -1,0 +1,47 @@
+[
+  {
+    "upstream": "raw.orders",
+    "downstream": "main_staging.stg_orders",
+    "type": "dbt_model"
+  },
+  {
+    "upstream": "main_staging.stg_orders",
+    "downstream": "main_marts.mart_daily_revenue",
+    "type": "dbt_model"
+  },
+  {
+    "upstream": "main_staging.stg_order_items",
+    "downstream": "main_marts.mart_daily_revenue",
+    "type": "dbt_model"
+  },
+  {
+    "upstream": "raw.order_items",
+    "downstream": "main_staging.stg_order_items",
+    "type": "dbt_model"
+  },
+  {
+    "upstream": "raw.products",
+    "downstream": "main_staging.stg_products",
+    "type": "dbt_model"
+  },
+  {
+    "upstream": "main_staging.stg_products",
+    "downstream": "main_marts.mart_demand_features",
+    "type": "dbt_model"
+  },
+  {
+    "upstream": "main_staging.stg_orders",
+    "downstream": "main_marts.mart_demand_features",
+    "type": "dbt_model"
+  },
+  {
+    "upstream": "main_staging.stg_order_items",
+    "downstream": "main_marts.mart_demand_features",
+    "type": "dbt_model"
+  },
+  {
+    "upstream": "main_marts.mart_demand_features",
+    "downstream": "urn:li:mlModel:(urn:li:dataPlatform:mlflow,kavach.demand_forecast,PROD)",
+    "type": "ml_training"
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "query": "SELECT order_date, gross_revenue FROM main_marts.mart_daily_revenue WHERE order_date >= CURRENT_DATE - INTERVAL 30 DAY",
+    "dataset": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_marts.mart_daily_revenue,PROD)",
+    "user": "analyst@kavach.demo",
+    "frequency": "daily"
+  },
+  {
+    "query": "SELECT product_id, feature_date, lag_7_qty, rolling_28_avg, next_day_qty FROM main_marts.mart_demand_features WHERE product_id = 'PRD00001'",
+    "dataset": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features,PROD)",
+    "user": "ml-pipeline@kavach.demo",
+    "frequency": "hourly"
+  },
+  {
+    "query": "SELECT supplier_id, reliability_score, total_units_sold FROM main_marts.mart_supplier_reliability ORDER BY reliability_score ASC LIMIT 10",
+    "dataset": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_marts.mart_supplier_reliability,PROD)",
+    "user": "ops@kavach.demo",
+    "frequency": "weekly"
+  }
+]

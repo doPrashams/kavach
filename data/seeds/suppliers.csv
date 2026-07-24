@@ -1,0 +1,26 @@
+supplier_id,supplier_name,region,reliability_score
+SUP0001,Supplier 1,central,0.6416
+SUP0002,Supplier 2,central,0.9029
+SUP0003,Supplier 3,south,0.5801
+SUP0004,Supplier 4,west,0.9007
+SUP0005,Supplier 5,west,0.5803
+SUP0006,Supplier 6,central,0.7313
+SUP0007,Supplier 7,north,0.8081
+SUP0008,Supplier 8,west,0.6703
+SUP0009,Supplier 9,west,0.7717
+SUP0010,Supplier 10,central,0.8449
+SUP0011,Supplier 11,north,0.8891
+SUP0012,Supplier 12,central,0.7915
+SUP0013,Supplier 13,west,0.5542
+SUP0014,Supplier 14,west,0.6406
+SUP0015,Supplier 15,west,0.6855
+SUP0016,Supplier 16,north,0.8944
+SUP0017,Supplier 17,north,0.6122
+SUP0018,Supplier 18,west,0.6627
+SUP0019,Supplier 19,west,0.6534
+SUP0020,Supplier 20,east,0.6943
+SUP0021,Supplier 21,west,0.6803
+SUP0022,Supplier 22,south,0.7495
+SUP0023,Supplier 23,east,0.6036
+SUP0024,Supplier 24,south,0.6429
+SUP0025,Supplier 25,north,0.8407
