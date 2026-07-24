@@ -105,15 +105,30 @@ async def open_pr(artifacts: FixArtifacts, settings: Settings) -> str:
     )
 
     for path, content in artifacts.files.items():
+        body: dict[str, Any] = {
+            "message": f"fix({artifacts.scenario}): {artifacts.pr_title}",
+            "content": base64.b64encode(content.encode("utf-8")).decode("ascii"),
+            "branch": branch,
+        }
+        # Updating an existing file requires its current blob SHA (422 without it).
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            existing = await client.get(
+                f"{base}/contents/{path}",
+                headers={
+                    "Authorization": f"Bearer {settings.github_pat}",
+                    "Accept": "application/vnd.github+json",
+                },
+                params={"ref": branch},
+            )
+            if existing.status_code == 200:
+                existing_sha = existing.json().get("sha")
+                if existing_sha:
+                    body["sha"] = existing_sha
         await _github_request(
             "PUT",
             f"{base}/contents/{path}",
             settings.github_pat,
-            json_body={
-                "message": f"fix({artifacts.scenario}): {artifacts.pr_title}",
-                "content": base64.b64encode(content.encode("utf-8")).decode("ascii"),
-                "branch": branch,
-            },
+            json_body=body,
         )
 
     pr = await _github_request(
