@@ -81,6 +81,32 @@ async def _github_request(
         return data
 
 
+async def _get_content_sha(
+    base: str,
+    path: str,
+    branch: str,
+    token: str,
+) -> str | None:
+    """Return blob sha for an existing file on a branch, or None if missing."""
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.get(
+            f"{base}/contents/{path}",
+            params={"ref": branch},
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/vnd.github+json",
+            },
+        )
+        if response.status_code == 404:
+            return None
+        response.raise_for_status()
+        data = response.json()
+        if isinstance(data, dict):
+            sha = data.get("sha")
+            return str(sha) if sha else None
+        return None
+
+
 async def open_pr(artifacts: FixArtifacts, settings: Settings) -> str:
     """Open a PR against DEMO_PIPELINE_REPO or write dry-run artifacts."""
     if not settings.github_pat:
@@ -105,15 +131,19 @@ async def open_pr(artifacts: FixArtifacts, settings: Settings) -> str:
     )
 
     for path, content in artifacts.files.items():
+        put_body: dict[str, Any] = {
+            "message": f"fix({artifacts.scenario}): {artifacts.pr_title}",
+            "content": base64.b64encode(content.encode("utf-8")).decode("ascii"),
+            "branch": branch,
+        }
+        existing_sha = await _get_content_sha(base, path, branch, settings.github_pat)
+        if existing_sha:
+            put_body["sha"] = existing_sha
         await _github_request(
             "PUT",
             f"{base}/contents/{path}",
             settings.github_pat,
-            json_body={
-                "message": f"fix({artifacts.scenario}): {artifacts.pr_title}",
-                "content": base64.b64encode(content.encode("utf-8")).decode("ascii"),
-                "branch": branch,
-            },
+            json_body=put_body,
         )
 
     pr = await _github_request(
