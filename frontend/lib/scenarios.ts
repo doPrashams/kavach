@@ -25,6 +25,8 @@ export interface ScenarioSpec {
   /** How Sentinel first detects it. */
   detects: string;
   root_cause: string;
+  /** Assertions the Fixer adds; all pass after remediation. */
+  tests: string[];
   source_name: string;
   datasets: Array<{ name: string; via: string }>;
   dashboards: string[];
@@ -56,6 +58,11 @@ export const SCENARIOS: Record<string, ScenarioSpec> = {
     impact: "Demand forecast model would train/serve on missing quantities → wrong reorder decisions in production.",
     detects: "Schema contract assertion on raw.order_items fails (expected `quantity`, found `qty`).",
     root_cause: "Supplier feed renamed `quantity`→`qty` and changed type to string, breaking stg_order_items.",
+    tests: [
+      "not_null(stg_order_items.quantity)",
+      "dtype(quantity) == integer",
+      "row_count(stg_order_items) > 0",
+    ],
     source_name: "raw.order_items",
     datasets: [
       { name: "raw.order_items", via: "quantity" },
@@ -98,6 +105,11 @@ export const SCENARIOS: Record<string, ScenarioSpec> = {
     impact: "Revenue dashboard under-reports; finance sees a phantom revenue cliff overnight.",
     detects: "Null-rate assertion on stg_orders.customer_id breaches the 5% threshold.",
     root_cause: "Burst of NULLs in raw.orders.customer_id after an upstream API timeout, skewing revenue joins.",
+    tests: [
+      "not_null(stg_orders.customer_id)",
+      "null_rate(customer_id) < 5%",
+      "relationships(orders.customer_id → customers.id)",
+    ],
     source_name: "raw.orders",
     datasets: [
       { name: "raw.orders", via: "customer_id" },
@@ -140,6 +152,11 @@ export const SCENARIOS: Record<string, ScenarioSpec> = {
     impact: "demand-forecast-prod is actively serving predictions on poisoned features — bad orders in real time.",
     detects: "Range/positivity assertion on unit_price + feature-drift monitor on mart_demand_features.",
     root_cause: "Negative/100x corrupted unit_price in raw.order_items skewed line_total and demand features feeding the forecast model.",
+    tests: [
+      "accepted_range(unit_price, 0, 10000)",
+      "line_total >= 0",
+      "feature_drift(mart_demand_features) < 0.1",
+    ],
     source_name: "raw.order_items",
     datasets: [
       { name: "raw.order_items", via: "unit_price" },
@@ -183,6 +200,10 @@ export const SCENARIOS: Record<string, ScenarioSpec> = {
     impact: "Ops act on yesterday's numbers; forecast slowly drifts from reality until the feed resumes.",
     detects: "Source freshness SLA on raw.orders breached (max_loaded_at > 2h).",
     root_cause: "Orders feed stopped landing; mart_daily_revenue is 9h stale, breaching the freshness SLA.",
+    tests: [
+      "source_freshness(raw.orders) < 2h",
+      "row_count(orders WHERE loaded_at = today) > 0",
+    ],
     source_name: "raw.orders",
     datasets: [
       { name: "raw.orders", via: "loaded_at" },
@@ -227,6 +248,11 @@ export const SCENARIOS: Record<string, ScenarioSpec> = {
     impact: "HIPAA violation — regulated PII exposed in an analytics table; access must be revoked immediately.",
     detects: "PII classifier tags an unmasked ssn column landing in a downstream mart.",
     root_cause: "Simulated: raw.patients.ssn exposed unmasked into an analytics mart — compliance violation.",
+    tests: [
+      "pii_masked(mart_patient_analytics.ssn)",
+      "glossary_tagged(ssn, term=PII)",
+      "no_plaintext_pii(mart_patient_analytics)",
+    ],
     source_name: "raw.patients",
     datasets: [
       { name: "raw.patients", via: "ssn" },
@@ -268,6 +294,10 @@ export const SCENARIOS: Record<string, ScenarioSpec> = {
     impact: "eta-predictor-prod returns increasingly wrong ETAs to riders until the partition lands.",
     detects: "Partition freshness SLA on nyc_taxi.trips breached (partition age > 3h).",
     root_cause: "Simulated: nyc_taxi.trips partition late by 6h, cascading stale ETA features.",
+    tests: [
+      "partition_freshness(nyc_taxi.trips) < 3h",
+      "timestamp_bounds(pickup_ts, 2009, now)",
+    ],
     source_name: "raw.nyc_taxi_trips",
     datasets: [
       { name: "raw.nyc_taxi_trips", via: "pickup_ts" },

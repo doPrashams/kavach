@@ -8,6 +8,7 @@ import {
   Info,
   Layers,
   Play,
+  ScrollText,
   User,
   X,
 } from "lucide-react";
@@ -15,10 +16,17 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getSiteGuide, getSiteHealth, type SiteGuide, type SiteHealth } from "@/lib/api";
+import {
+  getAuditLog,
+  getSiteGuide,
+  getSiteHealth,
+  type AuditLog,
+  type SiteGuide,
+  type SiteHealth,
+} from "@/lib/api";
 import { TOUR_STEPS } from "@/lib/site-content";
 
-type NavSection = "howto" | "scenarios" | "about" | "stack" | "health";
+type NavSection = "howto" | "scenarios" | "about" | "stack" | "health" | "activity";
 
 const SEVERITY_STYLES: Record<string, string> = {
   critical: "bg-red-500/20 text-red-200",
@@ -35,6 +43,8 @@ export function LeftNav({ onTourActiveChange }: LeftNavProps) {
   const [guide, setGuide] = useState<SiteGuide | null>(null);
   const [health, setHealth] = useState<SiteHealth | null>(null);
   const [healthError, setHealthError] = useState<string | null>(null);
+  const [audit, setAudit] = useState<AuditLog | null>(null);
+  const [auditError, setAuditError] = useState<string | null>(null);
   const [tourOpen, setTourOpen] = useState(false);
   const [tourIndex, setTourIndex] = useState(0);
 
@@ -54,6 +64,19 @@ export function LeftNav({ onTourActiveChange }: LeftNavProps) {
     const timer = setInterval(() => void refreshHealth(), 30_000);
     return () => clearInterval(timer);
   }, [refreshHealth]);
+
+  const refreshAudit = useCallback(async () => {
+    try {
+      setAuditError(null);
+      setAudit(await getAuditLog(100));
+    } catch (error) {
+      setAuditError(error instanceof Error ? error.message : "Failed to load audit log");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (section === "activity") void refreshAudit();
+  }, [section, refreshAudit]);
 
   useEffect(() => {
     onTourActiveChange?.(tourOpen);
@@ -97,6 +120,7 @@ export function LeftNav({ onTourActiveChange }: LeftNavProps) {
               ["about", "About me", User],
               ["stack", "Tech stack", Layers],
               ["health", "Site health", Activity],
+              ["activity", "Activity log", ScrollText],
             ] as const
           ).map(([id, label, Icon]) => (
             <button
@@ -264,6 +288,64 @@ export function LeftNav({ onTourActiveChange }: LeftNavProps) {
               )}
             </div>
           ) : null}
+
+          {section === "activity" ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  Admin audit — who ran what, when & from where
+                </p>
+                <Button type="button" variant="secondary" size="sm" onClick={() => void refreshAudit()}>
+                  Refresh
+                </Button>
+              </div>
+              {audit ? (
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <Badge variant={audit.durable ? "secondary" : "destructive"}>
+                    {audit.durable ? "durable (Redis)" : "in-memory"}
+                  </Badge>
+                  <Badge variant="secondary">{audit.count} events</Badge>
+                  {audit.protected ? <Badge variant="secondary">token-protected</Badge> : null}
+                </div>
+              ) : null}
+              {auditError ? <p className="text-destructive">{auditError}</p> : null}
+              {audit && audit.entries.length === 0 ? (
+                <p className="text-muted-foreground">
+                  No activity yet — inject a scenario, then refresh.
+                </p>
+              ) : null}
+              <ul className="space-y-2">
+                {(audit?.entries ?? []).map((e) => (
+                  <li
+                    key={e.id}
+                    className="rounded-md border border-border/30 px-2 py-1.5 text-xs"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-cyan-300">{e.action}</span>
+                      <span className="text-muted-foreground">
+                        {new Date(e.ts).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="mt-0.5 text-muted-foreground">
+                      {e.scenario ? <span className="text-foreground/80">{e.scenario}</span> : null}
+                      {e.ip ? <span> · {e.ip}</span> : null}
+                      {e.city || e.country ? (
+                        <span>
+                          {" "}
+                          · {[e.city, e.region, e.country].filter(Boolean).join(", ")}
+                        </span>
+                      ) : null}
+                    </div>
+                    {e.user_agent ? (
+                      <p className="mt-0.5 truncate text-[10px] text-muted-foreground/70">
+                        {e.user_agent}
+                      </p>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       </aside>
 
@@ -303,19 +385,33 @@ function ProductTour({
   useEffect(() => {
     const el = document.querySelector(`[data-tour-id="${step.target}"]`);
     if (el) {
-      el.classList.add("ring-2", "ring-cyan-400", "ring-offset-2", "ring-offset-slate-950");
+      el.classList.add(
+        "ring-2",
+        "ring-cyan-400",
+        "ring-offset-4",
+        "ring-offset-slate-950",
+        "rounded-xl",
+        "transition-all",
+      );
       el.scrollIntoView({ behavior: "smooth", block: "center" });
       return () => {
-        el.classList.remove("ring-2", "ring-cyan-400", "ring-offset-2", "ring-offset-slate-950");
+        el.classList.remove(
+          "ring-2",
+          "ring-cyan-400",
+          "ring-offset-4",
+          "ring-offset-slate-950",
+          "rounded-xl",
+          "transition-all",
+        );
       };
     }
   }, [step.target]);
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/55" />
+      {/* No dark backdrop — the spotlight ring stays fully visible on the target. */}
       <div
-        className="pointer-events-auto fixed left-1/2 top-4 w-[min(92vw,420px)] -translate-x-1/2 rounded-xl border border-cyan-400/40 bg-slate-950 p-4 shadow-2xl"
+        className="pointer-events-auto fixed bottom-6 left-1/2 w-[min(92vw,440px)] -translate-x-1/2 rounded-xl border border-cyan-400/50 bg-slate-950/95 p-4 shadow-[0_0_40px_rgba(34,211,238,0.25)] backdrop-blur"
         role="dialog"
         aria-label="Site tour"
       >

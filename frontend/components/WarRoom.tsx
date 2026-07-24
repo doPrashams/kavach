@@ -1,5 +1,6 @@
 "use client";
 
+import { FileText } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -7,6 +8,7 @@ import { AgentFeed } from "@/components/AgentFeed";
 import { AskDataHubPanel } from "@/components/AskDataHubPanel";
 import { BlastRadiusGraph } from "@/components/BlastRadiusGraph";
 import { ChaosPanel } from "@/components/ChaosPanel";
+import { IncidentReport } from "@/components/IncidentReport";
 import { LeftNav } from "@/components/LeftNav";
 import { LiveDataPanel } from "@/components/LiveDataPanel";
 import { MlGuardianCard } from "@/components/MlGuardianCard";
@@ -15,6 +17,7 @@ import { PostmortemCard } from "@/components/PostmortemCard";
 import { PrCard } from "@/components/PrCard";
 import { ReplayControls } from "@/components/ReplayControls";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   getFix,
   getFixtureEvents,
@@ -37,6 +40,7 @@ export function WarRoom() {
   const [fix, setFix] = useState<FixResponse | null>(null);
   const [mttrTrend, setMttrTrend] = useState<MttrPoint[]>(fixture.mttrTrend);
   const [statusLine, setStatusLine] = useState("Ready — pick a scenario and inject chaos");
+  const [reportOpen, setReportOpen] = useState(false);
 
   const { events } = useAgentEventStream({
     runId,
@@ -118,6 +122,16 @@ export function WarRoom() {
             <div className="flex items-center gap-2">
               {isDemoApi() ? <Badge variant="secondary">Demo API · /api/*</Badge> : null}
               {playing ? <Badge className="bg-amber-500/20 text-amber-200">Live run</Badge> : null}
+              {runId && !playing ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setReportOpen(true)}
+                >
+                  <FileText className="mr-1 size-4" aria-hidden="true" /> Incident report
+                </Button>
+              ) : null}
               <Link href="/deck" className="text-sm text-sky-400 hover:underline">
                 Open /deck
               </Link>
@@ -166,11 +180,21 @@ export function WarRoom() {
                 </p>
               </div>
             ) : (
-              <p className="mt-2 text-sm text-emerald-100">
-                <span className="font-semibold">Fixed:</span>{" "}
-                {activeRun.fix_plan?.summary ?? "Agents remediated the incident"} · postmortem
-                written to DataHub · MTTR trending down.
-              </p>
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm text-emerald-100">
+                  <span className="font-semibold">Fixed:</span>{" "}
+                  {activeRun.fix_plan?.summary ?? "Agents remediated the incident"} · postmortem
+                  written to DataHub · MTTR trending down.
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="bg-emerald-600 text-white hover:bg-emerald-500"
+                  onClick={() => setReportOpen(true)}
+                >
+                  <FileText className="mr-1 size-4" aria-hidden="true" /> View incident report
+                </Button>
+              </div>
             )}
           </div>
         ) : null}
@@ -247,6 +271,15 @@ export function WarRoom() {
           </section>
         </main>
       </div>
+
+      <IncidentReport
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        scenario={String(activeRun.trigger?.scenario ?? "schema_drift")}
+        runState={activeRun}
+        fix={fix}
+        events={runId ? getFixtureEvents(runId) : displayEvents}
+      />
     </div>
   );
 }

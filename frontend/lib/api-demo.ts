@@ -36,4 +36,5 @@ export const API_ROUTE_CATALOG = [
   { method: "POST", path: "/api/replay/:id", widget: "Replay", required: true },
   { method: "GET", path: "/api/flywheel/mttr", widget: "MTTR chart", required: true },
   { method: "GET", path: "/api/analytics/before-after", widget: "Ask DataHub", required: true },
+  { method: "GET", path: "/api/admin/audit", widget: "Admin activity log", required: false },
 ] as const;

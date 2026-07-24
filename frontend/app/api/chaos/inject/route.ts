@@ -5,6 +5,7 @@ import {
   buildFixForScenario,
   buildRunForScenario,
 } from "@/lib/api-demo";
+import { recordAudit } from "@/lib/audit";
 import { getDemoFixture } from "@/lib/fixtures";
 
 /** In-memory run registry for this serverless instance (demo). */
@@ -35,6 +36,8 @@ export async function POST(request: Request) {
     events: buildEventsForRun(runId, scenario),
     scenario,
   });
+
+  await recordAudit(request, { action: "chaos.inject", scenario, run_id: runId });
 
   return NextResponse.json({
     run_id: runId,

@@ -1,3 +1,4 @@
+import type { AuditEntry } from "@/lib/audit";
 import { getDemoFixture } from "@/lib/fixtures";
 import type { DataProbe } from "@/lib/real-data";
 import { getScenarioEvents, scenarioIdFromRunId } from "@/lib/scenarios";
@@ -109,6 +110,10 @@ export async function getSiteHealth(): Promise<SiteHealth> {
   return fetchJson<SiteHealth>("/api/health");
 }
 
+export async function getAuditLog(limit = 100): Promise<AuditLog> {
+  return fetchJson<AuditLog>(`/api/admin/audit?limit=${limit}`);
+}
+
 export async function getSiteGuide(): Promise<SiteGuide> {
   return fetchJson<SiteGuide>("/api/site/guide");
 }
@@ -174,6 +179,14 @@ export interface SiteGuide {
   tour: Array<{ id: string; target: string; title: string; body: string }>;
   scenarios: ScenarioDetail[];
   deployment: SiteHealth["deployment"];
+}
+
+export interface AuditLog {
+  durable: boolean;
+  protected: boolean;
+  count: number;
+  generated_at: string;
+  entries: AuditEntry[];
 }
 
 export interface ScenarioDetail {
