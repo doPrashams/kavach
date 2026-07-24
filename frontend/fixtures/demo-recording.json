@@ -149,7 +149,7 @@
   ],
   "fix": {
     "run_id": "demo-schema-drift-001",
-    "pr_ref": "https://github.com/doPrashams/kavach-demo-pipeline/pull/42",
+    "pr_ref": "https://github.com/doPrashams/kavach-demo-pipeline/pulls",
     "artifacts": {
       "scenario": "schema_drift",
       "branch_name": "kavach/fix-schema_drift-demo001",

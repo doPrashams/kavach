@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { getDemoFixture } from "@/lib/fixtures";
+import { listScenarioSpecs } from "@/lib/scenarios";
 
 export async function GET() {
-  const fixture = getDemoFixture();
   return NextResponse.json({
-    scenarios: fixture.scenarios,
+    scenarios: listScenarioSpecs(),
   });
 }

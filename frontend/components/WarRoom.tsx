@@ -83,6 +83,11 @@ export function WarRoom() {
         : [];
 
   const activeRun = runState ?? fixture.run;
+  const incidentPhase: "idle" | "active" | "resolved" = !runId
+    ? "idle"
+    : playing
+      ? "active"
+      : "resolved";
   const mlRecommendation =
     activeRun.findings.find((finding) => finding.toLowerCase().includes("ml guardian")) ??
     (activeRun.ml_hold_recommended ? "hold deployment" : "monitor");
@@ -118,6 +123,56 @@ export function WarRoom() {
             </div>
           </div>
         </header>
+
+        {incidentPhase !== "idle" ? (
+          <div
+            data-tour-id="tour-incident"
+            className={`border-b px-4 py-3 ${
+              incidentPhase === "active"
+                ? "border-red-500/40 bg-red-950/40"
+                : "border-emerald-500/40 bg-emerald-950/30"
+            }`}
+          >
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
+                  incidentPhase === "active"
+                    ? "bg-red-500/20 text-red-200"
+                    : "bg-emerald-500/20 text-emerald-200"
+                }`}
+              >
+                <span
+                  className={`size-2 rounded-full ${
+                    incidentPhase === "active" ? "animate-pulse bg-red-400" : "bg-emerald-400"
+                  }`}
+                />
+                {incidentPhase === "active" ? "INCIDENT ACTIVE" : "RESOLVED"}
+              </span>
+              <span className="text-sm font-medium">
+                {String(activeRun.trigger?.scenario ?? "incident")} · severity {activeRun.severity}
+              </span>
+              {activeRun.ml_hold_recommended ? (
+                <Badge className="bg-amber-500/20 text-amber-200">ML deployment held</Badge>
+              ) : null}
+            </div>
+            {incidentPhase === "active" ? (
+              <div className="mt-2 space-y-1 text-sm">
+                <p className="text-red-200">
+                  <span className="font-semibold">Crashing:</span> {activeRun.symptom}
+                </p>
+                <p className="text-muted-foreground">
+                  <span className="font-semibold text-red-300/80">Impact:</span> {activeRun.impact}
+                </p>
+              </div>
+            ) : (
+              <p className="mt-2 text-sm text-emerald-100">
+                <span className="font-semibold">Fixed:</span>{" "}
+                {activeRun.fix_plan?.summary ?? "Agents remediated the incident"} · postmortem
+                written to DataHub · MTTR trending down.
+              </p>
+            )}
+          </div>
+        ) : null}
 
         {/* Mobile guide entry */}
         <div className="border-b border-border/30 px-4 py-2 lg:hidden">

@@ -7,6 +7,7 @@ import {
   TECH_STACK,
   TOUR_STEPS,
 } from "@/lib/site-content";
+import { listScenarioDetails } from "@/lib/scenarios";
 
 export async function GET() {
   return NextResponse.json({
@@ -14,6 +15,7 @@ export async function GET() {
     about: ABOUT_ME,
     tech_stack: TECH_STACK,
     tour: TOUR_STEPS,
+    scenarios: listScenarioDetails(),
     deployment: DEPLOYMENT_INFO,
   });
 }

@@ -1,4 +1,5 @@
 import { getDemoFixture } from "@/lib/fixtures";
+import { getScenarioEvents, scenarioIdFromRunId } from "@/lib/scenarios";
 import type {
   ChaosScenario,
   FixResponse,
@@ -126,13 +127,8 @@ export function getFixtureEvents(runId?: string) {
   if (!runId || runId === fixture.recordingId) {
     return fixture.events;
   }
-  const scenario = runId.match(/^run-([a-z_]+)-/)?.[1] ?? "schema_drift";
-  return fixture.events.map((event, index) => ({
-    ...event,
-    id: `${runId}-evt-${index + 1}`,
-    run_id: runId,
-    message: event.message.replace(/schema_drift/g, scenario),
-  }));
+  const scenario = scenarioIdFromRunId(runId);
+  return getScenarioEvents(scenario, runId);
 }
 
 export interface SiteHealth {
@@ -169,7 +165,23 @@ export interface SiteGuide {
   };
   tech_stack: Array<{ layer: string; items: string[] }>;
   tour: Array<{ id: string; target: string; title: string; body: string }>;
+  scenarios: ScenarioDetail[];
   deployment: SiteHealth["deployment"];
+}
+
+export interface ScenarioDetail {
+  id: string;
+  label: string;
+  simulated: boolean;
+  severity: string;
+  ml_risk: string;
+  ml_hold: boolean;
+  symptom: string;
+  impact: string;
+  detects: string;
+  root_cause: string;
+  fix: string;
+  affected: string[];
 }
 
 export { API_URL };

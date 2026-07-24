@@ -58,6 +58,8 @@ export interface RunState {
   trigger: Record<string, unknown>;
   status: string;
   severity: string;
+  symptom?: string | null;
+  impact?: string | null;
   root_cause?: string | null;
   findings: string[];
   blast_radius?: BlastRadius | null;

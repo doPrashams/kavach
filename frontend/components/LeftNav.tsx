@@ -2,6 +2,7 @@
 
 import {
   Activity,
+  AlertTriangle,
   ChevronLeft,
   ChevronRight,
   Info,
@@ -17,7 +18,13 @@ import { Button } from "@/components/ui/button";
 import { getSiteGuide, getSiteHealth, type SiteGuide, type SiteHealth } from "@/lib/api";
 import { TOUR_STEPS } from "@/lib/site-content";
 
-type NavSection = "howto" | "about" | "stack" | "health";
+type NavSection = "howto" | "scenarios" | "about" | "stack" | "health";
+
+const SEVERITY_STYLES: Record<string, string> = {
+  critical: "bg-red-500/20 text-red-200",
+  high: "bg-orange-500/20 text-orange-200",
+  medium: "bg-amber-500/20 text-amber-200",
+};
 
 interface LeftNavProps {
   onTourActiveChange?: (active: boolean) => void;
@@ -86,6 +93,7 @@ export function LeftNav({ onTourActiveChange }: LeftNavProps) {
           {(
             [
               ["howto", "How to use", Info],
+              ["scenarios", "Scenarios", AlertTriangle],
               ["about", "About me", User],
               ["stack", "Tech stack", Layers],
               ["health", "Site health", Activity],
@@ -131,6 +139,53 @@ export function LeftNav({ onTourActiveChange }: LeftNavProps) {
                 </li>
               ))}
             </ol>
+          ) : null}
+
+          {section === "scenarios" ? (
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Six real failure modes. Pick one in the Chaos panel and inject it — the war room
+                shows it crash, then heal.
+              </p>
+              {(guide?.scenarios ?? []).map((s) => (
+                <div key={s.id} className="rounded-lg border border-border/40 p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-medium text-cyan-200">{s.label}</p>
+                    <Badge className={SEVERITY_STYLES[s.severity] ?? "bg-muted/40"}>
+                      {s.severity}
+                    </Badge>
+                    {s.simulated ? <Badge variant="secondary">simulated</Badge> : null}
+                    {s.ml_hold ? (
+                      <Badge className="bg-amber-500/20 text-amber-200">ML hold</Badge>
+                    ) : null}
+                  </div>
+                  <dl className="mt-2 space-y-1.5 text-xs">
+                    <div>
+                      <dt className="font-semibold text-red-300">What breaks</dt>
+                      <dd className="text-muted-foreground">{s.symptom}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-semibold text-orange-300">Impact</dt>
+                      <dd className="text-muted-foreground">{s.impact}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-semibold text-sky-300">How Kavach detects</dt>
+                      <dd className="text-muted-foreground">{s.detects}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-semibold text-emerald-300">Auto-fix</dt>
+                      <dd className="text-muted-foreground">{s.fix}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-semibold text-muted-foreground">Blast radius</dt>
+                      <dd className="font-mono text-[11px] text-muted-foreground">
+                        {s.affected.join(" → ")}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              ))}
+            </div>
           ) : null}
 
           {section === "about" && guide ? (
@@ -244,29 +299,23 @@ function ProductTour({
   onNext: () => void;
 }) {
   const step = TOUR_STEPS[index];
-  const [box, setBox] = useState<DOMRect | null>(null);
 
   useEffect(() => {
     const el = document.querySelector(`[data-tour-id="${step.target}"]`);
     if (el) {
-      setBox(el.getBoundingClientRect());
       el.classList.add("ring-2", "ring-cyan-400", "ring-offset-2", "ring-offset-slate-950");
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
       return () => {
         el.classList.remove("ring-2", "ring-cyan-400", "ring-offset-2", "ring-offset-slate-950");
       };
     }
-    setBox(null);
   }, [step.target]);
-
-  const cardTop = box ? Math.min(box.bottom + 12, window.innerHeight - 220) : 80;
-  const cardLeft = box ? Math.min(Math.max(16, box.left), window.innerWidth - 360) : 80;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50">
       <div className="absolute inset-0 bg-black/55" />
       <div
-        className="pointer-events-auto absolute w-[340px] rounded-xl border border-cyan-400/40 bg-slate-950 p-4 shadow-2xl"
-        style={{ top: cardTop, left: cardLeft }}
+        className="pointer-events-auto fixed left-1/2 top-4 w-[min(92vw,420px)] -translate-x-1/2 rounded-xl border border-cyan-400/40 bg-slate-950 p-4 shadow-2xl"
         role="dialog"
         aria-label="Site tour"
       >

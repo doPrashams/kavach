@@ -1,6 +1,10 @@
-/** Shared helpers for Next.js /api demo routes (fixture-backed). */
+/** Shared helpers for Next.js /api demo routes (per-scenario data). */
 
-import { getDemoFixture } from "@/lib/fixtures";
+import {
+  getScenarioEvents,
+  getScenarioFix,
+  getScenarioRun,
+} from "@/lib/scenarios";
 import type { FixResponse, RunState } from "@/lib/types";
 
 export function apiBaseFromRequest(request: Request): string {
@@ -9,46 +13,15 @@ export function apiBaseFromRequest(request: Request): string {
 }
 
 export function buildRunForScenario(scenario: string, runId: string): RunState {
-  const fixture = getDemoFixture();
-  const run: RunState = structuredClone(fixture.run);
-  run.run_id = runId;
-  run.trigger = { type: "chaos", scenario, seed: 42 };
-  run.findings = run.findings.map((f) =>
-    f.includes("schema_drift") ? f.replace(/schema_drift/g, scenario) : f,
-  );
-  if (run.postmortem) {
-    run.postmortem = run.postmortem.replace(/schema_drift/g, scenario);
-  }
-  if (run.fix_plan) {
-    run.fix_plan = {
-      ...run.fix_plan,
-      summary: run.fix_plan.summary.replace(/schema_drift/g, scenario),
-    };
-  }
-  return run;
+  return getScenarioRun(scenario, runId);
 }
 
 export function buildFixForScenario(scenario: string, runId: string): FixResponse {
-  const fixture = getDemoFixture();
-  const fix: FixResponse = structuredClone(fixture.fix);
-  fix.run_id = runId;
-  fix.artifacts = {
-    ...fix.artifacts,
-    scenario,
-    branch_name: `kavach/fix-${scenario}-demo`,
-    pr_title: fix.artifacts.pr_title.replace(/schema_drift/g, scenario),
-  };
-  return fix;
+  return getScenarioFix(scenario, runId);
 }
 
 export function buildEventsForRun(runId: string, scenario: string) {
-  const fixture = getDemoFixture();
-  return fixture.events.map((event, index) => ({
-    ...event,
-    id: `${runId}-evt-${index + 1}`,
-    run_id: runId,
-    message: event.message.replace(/schema_drift/g, scenario),
-  }));
+  return getScenarioEvents(scenario, runId);
 }
 
 export const API_ROUTE_CATALOG = [
