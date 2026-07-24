@@ -1,4 +1,5 @@
 import { getDemoFixture } from "@/lib/fixtures";
+import type { DataProbe } from "@/lib/real-data";
 import { getScenarioEvents, scenarioIdFromRunId } from "@/lib/scenarios";
 import type {
   ChaosScenario,
@@ -110,6 +111,12 @@ export async function getSiteHealth(): Promise<SiteHealth> {
 
 export async function getSiteGuide(): Promise<SiteGuide> {
   return fetchJson<SiteGuide>("/api/site/guide");
+}
+
+export async function getDataPreview(scenario: string): Promise<DataProbe> {
+  return fetchJson<DataProbe>(
+    `/api/data/preview?scenario=${encodeURIComponent(scenario)}`,
+  );
 }
 
 export async function getBeforeAfter(scenario: string) {

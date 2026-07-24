@@ -29,6 +29,7 @@ export const API_ROUTE_CATALOG = [
   { method: "GET", path: "/api/site/guide", widget: "Sidebar guide", required: true },
   { method: "GET", path: "/api/chaos/scenarios", widget: "Chaos panel", required: true },
   { method: "POST", path: "/api/chaos/inject", widget: "Inject Chaos", required: true },
+  { method: "GET", path: "/api/data/preview", widget: "Live data probe", required: true },
   { method: "GET", path: "/api/runs/:id", widget: "Run state / cards", required: true },
   { method: "GET", path: "/api/fixes/:id", widget: "PR card", required: true },
   { method: "GET", path: "/api/recordings", widget: "Replay controls", required: true },

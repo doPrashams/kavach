@@ -8,6 +8,7 @@ import { AskDataHubPanel } from "@/components/AskDataHubPanel";
 import { BlastRadiusGraph } from "@/components/BlastRadiusGraph";
 import { ChaosPanel } from "@/components/ChaosPanel";
 import { LeftNav } from "@/components/LeftNav";
+import { LiveDataPanel } from "@/components/LiveDataPanel";
 import { MlGuardianCard } from "@/components/MlGuardianCard";
 import { MttrChart } from "@/components/MttrChart";
 import { PostmortemCard } from "@/components/PostmortemCard";
@@ -209,6 +210,9 @@ export function WarRoom() {
           </section>
 
           <section className="space-y-4 lg:col-span-5">
+            <div data-tour-id="tour-data">
+              <LiveDataPanel scenario={String(activeRun.trigger?.scenario ?? "schema_drift")} />
+            </div>
             <div data-tour-id="tour-feed">
               <AgentFeed events={displayEvents} />
             </div>
