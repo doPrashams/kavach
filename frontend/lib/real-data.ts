@@ -142,7 +142,7 @@ export function getScenarioProbe(scenario: string): DataProbe {
       query: "SELECT * FROM yellow_taxi WHERE fare_amount < 0",
       columns: [...DISPLAY_COLUMNS],
       highlight_column: "fare_amount",
-      headline: `${stats.negative_fare_count} real trips with negative fares (min $${stats.fare_min}, down to −$800) found in ${fmtInt(stats.rows_scanned)} scanned rows`,
+      headline: `${stats.negative_fare_count} real trips with negative fares (down to −$800) found while scanning ${fmtInt(stats.rows_scanned)} rows`,
       rows: [
         ...anomalies.slice(0, 4).map((r) => ({
           cells: pick(r),
