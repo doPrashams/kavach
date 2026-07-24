@@ -17,7 +17,7 @@ Status values: `pending` | `in-progress` | `done` | `BLOCKER`.
 | H09 | Analytics Agent composed in | M4 | done | | |
 | H10 | datahub-incident-response skill PR | M5 | done | | |
 | H11 | Deploy (VM + Vercel) + seed replay runs | M5 | done | | |
-| H12 | Submission assets (README, deck, video, Devpost) | M5 | pending | | |
+| H12 | Submission assets (README, deck, video, Devpost) | M5 | done | | |
 
 ## Blockers log
 
