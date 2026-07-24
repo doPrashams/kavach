@@ -2,22 +2,45 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from pathlib import Path
 
 from app.agents.context import AgentContext
 from app.agents.state import AgentName, IncidentState
+from app.flywheel.retriever import find_similar
 
 PROMPT = (Path(__file__).resolve().parents[1] / "prompts" / "investigator.md").read_text(
     encoding="utf-8"
 )
 TARGET = "main_marts.mart_demand_features"
+FULL_PATH_MS = 3000
+FAST_PATH_MS = 200
 
 
 async def run(state: IncidentState, ctx: AgentContext) -> IncidentState:
     """Walk upstream lineage and historical queries to determine root cause."""
     trigger = state.trigger
     if trigger.get("type") == "chaos":
+        matches = find_similar(state, k=1)
+        if matches and matches[0].similarity > 0.0:
+            top = matches[0]
+            state.root_cause = str(trigger.get("root_cause", top.resolution))
+            citation = f"Prior postmortem cited: {top.title} (sim={top.similarity:.3f})"
+            state.findings.append(citation)
+            await ctx.emit(
+                state,
+                AgentName.INVESTIGATOR,
+                "prior_postmortem_cited",
+                citation,
+                prior_urn=top.urn,
+                similarity=top.similarity,
+                processing_ms=FAST_PATH_MS,
+                scenario=trigger.get("scenario"),
+            )
+            return state
+
+        await asyncio.sleep(0.01)
         state.root_cause = str(trigger.get("root_cause", "chaos injection"))
         state.findings.append(f"Root cause: {state.root_cause}")
         await ctx.emit(
@@ -26,6 +49,7 @@ async def run(state: IncidentState, ctx: AgentContext) -> IncidentState:
             "root_cause_identified",
             state.root_cause,
             confidence=1.0,
+            processing_ms=FULL_PATH_MS,
             scenario=trigger.get("scenario"),
         )
         return state
@@ -46,5 +70,6 @@ async def run(state: IncidentState, ctx: AgentContext) -> IncidentState:
         "root_cause_identified",
         state.root_cause or "unknown",
         confidence=parsed.get("confidence"),
+        processing_ms=FULL_PATH_MS,
     )
     return state

@@ -25,18 +25,27 @@ class SchemaDriftScenario:
 
     def inject(self, warehouse: Warehouse, seed: int) -> None:
         del seed
-        warehouse.execute(
-            """
-            CREATE OR REPLACE TABLE raw.order_items AS
-            SELECT
-                order_item_id,
-                order_id,
-                product_id,
-                cast(quantity as varchar) as qty,
-                line_total
-            FROM raw.order_items
-            """
-        )
+        conn = warehouse.connect()
+        try:
+            cols = {row[0] for row in conn.execute("DESCRIBE raw.order_items").fetchall()}
+            if "qty" in cols and "quantity" not in cols:
+                return
+            if "quantity" not in cols:
+                return
+            conn.execute(
+                """
+                CREATE OR REPLACE TABLE raw.order_items AS
+                SELECT
+                    order_item_id,
+                    order_id,
+                    product_id,
+                    cast(quantity as varchar) as qty,
+                    line_total
+                FROM raw.order_items
+                """
+            )
+        finally:
+            conn.close()
         try:
             warehouse.rebuild_marts()
         except Exception:
@@ -48,7 +57,10 @@ class SchemaDriftScenario:
         warehouse.restore_snapshot_simple(
             {"raw.order_items": snapshot["raw.order_items"]}
         )
-        warehouse.rebuild_marts()
+        try:
+            warehouse.rebuild_marts()
+        except Exception:
+            pass
 
     def expected_signal(self) -> ExpectedSignal:
         return ExpectedSignal(

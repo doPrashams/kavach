@@ -11,7 +11,7 @@ Status values: `pending` | `in-progress` | `done` | `BLOCKER`.
 | H03 | DataHub context layer (MCP + Agent Context Kit) | M2 | done | | |
 | H04 | Agent team (LangGraph) + event bus + recorder | M2 | done | | |
 | H05 | Chaos engine + scenarios | M3 | done | | |
-| H06 | Fixer codegen + GitHub PR flow | M3 | pending | | |
+| H06 | Fixer codegen + GitHub PR flow | M3 | done | | |
 | H07 | Knowledge flywheel (postmortem RAG + MTTR) | M3 | pending | | |
 | H08 | War room UI + /deck | M4 | pending | | |
 | H09 | Analytics Agent composed in | M4 | pending | | |
