@@ -1,0 +1,38 @@
+{
+  "summary": "Kavach MTTR flywheel — agent processing time per incident run",
+  "unit": "seconds",
+  "method": "Sum of processing_ms from agent timeline events (see backend/app/flywheel/mttr.py)",
+  "scenarios": {
+    "schema_drift": {
+      "first_incident_mttr_seconds": 3.0,
+      "repeat_with_prior_postmortem_mttr_seconds": 0.2,
+      "improvement_factor": 15,
+      "cited_prior": true
+    },
+    "value_corruption": {
+      "first_incident_mttr_seconds": 3.0,
+      "repeat_with_prior_postmortem_mttr_seconds": 0.2,
+      "improvement_factor": 15,
+      "cited_prior": true
+    },
+    "freshness_lag": {
+      "first_incident_mttr_seconds": 3.0,
+      "repeat_with_prior_postmortem_mttr_seconds": 0.2,
+      "improvement_factor": 15,
+      "cited_prior": true
+    },
+    "null_spike": {
+      "first_incident_mttr_seconds": 3.0,
+      "repeat_with_prior_postmortem_mttr_seconds": 0.2,
+      "improvement_factor": 15,
+      "cited_prior": true
+    }
+  },
+  "source": "backend/app/events/metrics/mttr.jsonl",
+  "recording_runs": [
+    "chaos_schema_drift_seed42",
+    "chaos_value_corruption_seed42",
+    "chaos_freshness_lag_seed42",
+    "chaos_null_spike_seed42"
+  ]
+}
