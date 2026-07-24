@@ -1,0 +1,45 @@
+{
+  "main_marts.mart_daily_revenue": {
+    "platform": "duckdb",
+    "schema": "main_marts",
+    "table": "mart_daily_revenue",
+    "columns": [
+      {"name": "order_date", "type": "DATE", "description": "Calendar date"},
+      {"name": "gross_revenue", "type": "DOUBLE", "description": "Sum of completed order line totals"},
+      {"name": "line_count", "type": "BIGINT", "description": "Number of line items"}
+    ],
+    "owner": "data-platform@kavach.demo",
+    "tags": ["mart", "revenue", "dashboard"]
+  },
+  "main_marts.mart_supplier_reliability": {
+    "platform": "duckdb",
+    "schema": "main_marts",
+    "table": "mart_supplier_reliability",
+    "columns": [
+      {"name": "supplier_id", "type": "VARCHAR"},
+      {"name": "supplier_name", "type": "VARCHAR"},
+      {"name": "region", "type": "VARCHAR"},
+      {"name": "reliability_score", "type": "DOUBLE"},
+      {"name": "total_units_sold", "type": "HUGEINT"},
+      {"name": "product_count", "type": "BIGINT"}
+    ],
+    "owner": "ops@kavach.demo",
+    "tags": ["mart", "suppliers"]
+  },
+  "main_marts.mart_demand_features": {
+    "platform": "duckdb",
+    "schema": "main_marts",
+    "table": "mart_demand_features",
+    "columns": [
+      {"name": "product_id", "type": "VARCHAR"},
+      {"name": "feature_date", "type": "DATE"},
+      {"name": "dow", "type": "INTEGER"},
+      {"name": "lag_7_qty", "type": "HUGEINT"},
+      {"name": "rolling_28_avg", "type": "DOUBLE"},
+      {"name": "supplier_reliability", "type": "DOUBLE"},
+      {"name": "next_day_qty", "type": "HUGEINT"}
+    ],
+    "owner": "ml-platform@kavach.demo",
+    "tags": ["mart", "ml", "features"]
+  }
+}

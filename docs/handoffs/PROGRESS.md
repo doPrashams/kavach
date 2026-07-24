@@ -5,9 +5,9 @@ Status values: `pending` | `in-progress` | `done` | `BLOCKER`.
 
 | Handoff | Title | Milestone | Status | Commit | Notes |
 |---------|-------|-----------|--------|--------|-------|
-| H00 | Scaffold monorepo + CI | M1 | pending | | |
-| H01 | Data platform (DuckDB + dbt) + ingestion | M1 | pending | | |
-| H02 | ML pipeline + DataHub ML lineage | M1 | pending | | |
+| H00 | Scaffold monorepo + CI | M1 | done | | |
+| H01 | Data platform (DuckDB + dbt) + ingestion | M1 | done | | |
+| H02 | ML pipeline + DataHub ML lineage | M1 | done | | |
 | H03 | DataHub context layer (MCP + Agent Context Kit) | M2 | pending | | |
 | H04 | Agent team (LangGraph) + event bus + recorder | M2 | pending | | |
 | H05 | Chaos engine + scenarios | M3 | pending | | |

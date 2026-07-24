@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Node
+node_modules/
+.next/
+out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Data / ML
+*.duckdb
+duckdb/
+warehouse.duckdb
+mlruns/
+ml/artifacts/
+ml/mlruns/
+data/warehouse.duckdb
+
+# IDE
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# dbt
+target/
+dbt_packages/
+logs/
