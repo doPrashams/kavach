@@ -8,8 +8,8 @@ Status values: `pending` | `in-progress` | `done` | `BLOCKER`.
 | H00 | Scaffold monorepo + CI | M1 | done | | |
 | H01 | Data platform (DuckDB + dbt) + ingestion | M1 | done | | |
 | H02 | ML pipeline + DataHub ML lineage | M1 | done | | |
-| H03 | DataHub context layer (MCP + Agent Context Kit) | M2 | pending | | |
-| H04 | Agent team (LangGraph) + event bus + recorder | M2 | pending | | |
+| H03 | DataHub context layer (MCP + Agent Context Kit) | M2 | done | | |
+| H04 | Agent team (LangGraph) + event bus + recorder | M2 | done | | |
 | H05 | Chaos engine + scenarios | M3 | pending | | |
 | H06 | Fixer codegen + GitHub PR flow | M3 | pending | | |
 | H07 | Knowledge flywheel (postmortem RAG + MTTR) | M3 | pending | | |
