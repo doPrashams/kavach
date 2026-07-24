@@ -25,6 +25,8 @@ out/
 duckdb/
 warehouse.duckdb
 mlruns/
+ml/artifacts/
+ml/mlruns/
 data/warehouse.duckdb
 
 # IDE

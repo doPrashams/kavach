@@ -1,0 +1,154 @@
+{
+  "dataset": {
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features,PROD)",
+    "name": "main_marts.mart_demand_features"
+  },
+  "mlFeature": [
+    {
+      "entityType": "mlFeature",
+      "urn": "urn:li:mlFeature:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features.product_id,PROD)",
+      "name": "product_id",
+      "description": "Product identifier from mart_demand_features",
+      "featureNamespace": "kavach",
+      "dataType": "categorical",
+      "upstream": [
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features,PROD)",
+          "column": "product_id"
+        }
+      ]
+    },
+    {
+      "entityType": "mlFeature",
+      "urn": "urn:li:mlFeature:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features.dow,PROD)",
+      "name": "dow",
+      "description": "Day of week (0=Monday)",
+      "featureNamespace": "kavach",
+      "dataType": "integer",
+      "upstream": [
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features,PROD)",
+          "column": "dow"
+        }
+      ]
+    },
+    {
+      "entityType": "mlFeature",
+      "urn": "urn:li:mlFeature:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features.lag_7_qty,PROD)",
+      "name": "lag_7_qty",
+      "description": "Quantity sold 7 days prior",
+      "featureNamespace": "kavach",
+      "dataType": "integer",
+      "upstream": [
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features,PROD)",
+          "column": "lag_7_qty"
+        }
+      ]
+    },
+    {
+      "entityType": "mlFeature",
+      "urn": "urn:li:mlFeature:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features.rolling_28_avg,PROD)",
+      "name": "rolling_28_avg",
+      "description": "28-day rolling average quantity",
+      "featureNamespace": "kavach",
+      "dataType": "float",
+      "upstream": [
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features,PROD)",
+          "column": "rolling_28_avg"
+        }
+      ]
+    },
+    {
+      "entityType": "mlFeature",
+      "urn": "urn:li:mlFeature:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features.supplier_reliability,PROD)",
+      "name": "supplier_reliability",
+      "description": "Upstream supplier reliability score",
+      "featureNamespace": "kavach",
+      "dataType": "float",
+      "upstream": [
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features,PROD)",
+          "column": "supplier_reliability"
+        }
+      ]
+    },
+    {
+      "entityType": "mlFeature",
+      "urn": "urn:li:mlFeature:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features.next_day_qty,PROD)",
+      "name": "next_day_qty",
+      "description": "Quantity sold on the following day",
+      "featureNamespace": "kavach",
+      "dataType": "integer",
+      "upstream": [
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features,PROD)",
+          "column": "next_day_qty"
+        }
+      ]
+    }
+  ],
+  "mlModel": {
+    "entityType": "mlModel",
+    "urn": "urn:li:mlModel:(urn:li:dataPlatform:mlflow,kavach.demand_forecast,PROD)",
+    "name": "kavach.demand_forecast",
+    "description": "Demand forecast model trained on mart_demand_features",
+    "trainingData": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features,PROD)",
+    "inputFeatures": [
+      "urn:li:mlFeature:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features.product_id,PROD)",
+      "urn:li:mlFeature:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features.dow,PROD)",
+      "urn:li:mlFeature:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features.lag_7_qty,PROD)",
+      "urn:li:mlFeature:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features.rolling_28_avg,PROD)",
+      "urn:li:mlFeature:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features.supplier_reliability,PROD)"
+    ],
+    "downstream": [
+      "urn:li:mlModelDeployment:(urn:li:dataPlatform:mlflow,kavach.demand_forecast.prod,PROD)"
+    ]
+  },
+  "mlModelDeployment": {
+    "entityType": "mlModelDeployment",
+    "urn": "urn:li:mlModelDeployment:(urn:li:dataPlatform:mlflow,kavach.demand_forecast.prod,PROD)",
+    "name": "prod",
+    "description": "Production deployment of demand forecast model",
+    "model": "urn:li:mlModel:(urn:li:dataPlatform:mlflow,kavach.demand_forecast,PROD)",
+    "environment": "prod"
+  },
+  "edges": [
+    {
+      "upstream": "urn:li:mlFeature:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features.product_id,PROD)",
+      "downstream": "urn:li:mlModel:(urn:li:dataPlatform:mlflow,kavach.demand_forecast,PROD)",
+      "type": "mlFeatureToModel"
+    },
+    {
+      "upstream": "urn:li:mlFeature:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features.dow,PROD)",
+      "downstream": "urn:li:mlModel:(urn:li:dataPlatform:mlflow,kavach.demand_forecast,PROD)",
+      "type": "mlFeatureToModel"
+    },
+    {
+      "upstream": "urn:li:mlFeature:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features.lag_7_qty,PROD)",
+      "downstream": "urn:li:mlModel:(urn:li:dataPlatform:mlflow,kavach.demand_forecast,PROD)",
+      "type": "mlFeatureToModel"
+    },
+    {
+      "upstream": "urn:li:mlFeature:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features.rolling_28_avg,PROD)",
+      "downstream": "urn:li:mlModel:(urn:li:dataPlatform:mlflow,kavach.demand_forecast,PROD)",
+      "type": "mlFeatureToModel"
+    },
+    {
+      "upstream": "urn:li:mlFeature:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features.supplier_reliability,PROD)",
+      "downstream": "urn:li:mlModel:(urn:li:dataPlatform:mlflow,kavach.demand_forecast,PROD)",
+      "type": "mlFeatureToModel"
+    },
+    {
+      "upstream": "urn:li:mlModel:(urn:li:dataPlatform:mlflow,kavach.demand_forecast,PROD)",
+      "downstream": "urn:li:mlModelDeployment:(urn:li:dataPlatform:mlflow,kavach.demand_forecast.prod,PROD)",
+      "type": "mlModelToDeployment"
+    },
+    {
+      "upstream": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features,PROD)",
+      "downstream": "urn:li:mlModel:(urn:li:dataPlatform:mlflow,kavach.demand_forecast,PROD)",
+      "type": "datasetToMlModel"
+    }
+  ]
+}
