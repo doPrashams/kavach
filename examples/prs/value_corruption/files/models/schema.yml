@@ -1,0 +1,4 @@
+      - name: line_total
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "line_total >= 0 and line_total <= 100000"

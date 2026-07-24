@@ -1,0 +1,11 @@
+{"run_id":"42c04cd1-bfd1-48e6-b93d-7ea14f4a3e70","scenario":"schema_drift","mttr_seconds":0.0,"cited_prior":false,"recorded_at":"2026-07-24T06:26:27.754289Z"}
+{"run_id":"59802a6c-1440-4bb6-982e-af2d724a866d","scenario":"schema_drift","mttr_seconds":0.0,"cited_prior":false,"recorded_at":"2026-07-24T06:26:32.506493Z"}
+{"run_id":"d078e64a-171b-41da-8788-588e3bc56bb7","scenario":"schema_drift","mttr_seconds":0.0,"cited_prior":false,"recorded_at":"2026-07-24T06:27:16.762128Z"}
+{"run_id":"5960bf12-7c05-44f3-8296-e8c674355445","scenario":"schema_drift","mttr_seconds":3.0,"cited_prior":false,"recorded_at":"2026-07-24T06:27:41.053712Z"}
+{"run_id":"a1fa134a-d779-4648-a53d-81be4253d406","scenario":"schema_drift","mttr_seconds":0.2,"cited_prior":true,"recorded_at":"2026-07-24T06:27:45.836097Z"}
+{"run_id":"64dc8725-2f3f-43d1-9708-d382b59e4dcf","scenario":"value_corruption","mttr_seconds":3.0,"cited_prior":false,"recorded_at":"2026-07-24T06:29:18.036043Z"}
+{"run_id":"25ed22fa-6477-4a30-a95e-09e89af69244","scenario":"freshness_lag","mttr_seconds":3.0,"cited_prior":false,"recorded_at":"2026-07-24T06:29:22.988489Z"}
+{"run_id":"300cb5db-8d7a-4e8a-8fe0-43c7963bd4d8","scenario":"schema_drift","mttr_seconds":3.0,"cited_prior":false,"recorded_at":"2026-07-24T06:29:27.737965Z"}
+{"run_id":"eeef17db-c8fb-4f4d-9290-e9437701346e","scenario":"null_spike","mttr_seconds":3.0,"cited_prior":false,"recorded_at":"2026-07-24T06:29:32.721308Z"}
+{"run_id":"5303f112-e166-4209-bd6a-b1df356ee022","scenario":"value_corruption","mttr_seconds":0.2,"cited_prior":true,"recorded_at":"2026-07-24T06:29:37.774557Z"}
+{"run_id":"f13741a6-a24b-4057-93ee-aafc0eca30ca","scenario":"schema_drift","mttr_seconds":3.0,"cited_prior":false,"recorded_at":"2026-07-24T06:29:43.933245Z"}

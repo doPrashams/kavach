@@ -21,6 +21,7 @@ from app.agents.state import AgentEvent, IncidentState
 from app.config import Settings, get_settings
 from app.events.bus import BUS, EventBus
 from app.events.recorder import RunRecorder
+from app.flywheel.mttr import record_mttr
 
 logger = structlog.get_logger(__name__)
 
@@ -100,11 +101,18 @@ async def run_incident(
     compiled = build_graph(ctx)
     logger.info("agents.run_started", run_id=state.run_id)
     final = await compiled.ainvoke(state)
-    if isinstance(final, IncidentState):
+    saved = _RUN_STATES.get(state.run_id)
+    if saved is not None:
+        result = saved
+    elif isinstance(final, IncidentState):
         result = final
     else:
         result = IncidentState.model_validate(final)
     _RUN_STATES[result.run_id] = result
+    cited_prior = any(
+        e.event_type == "prior_postmortem_cited" for e in rec.load(result.run_id)
+    )
+    record_mttr(result, cited_prior=cited_prior, events=rec.load(result.run_id))
     event_bus.close_run(result.run_id)
     logger.info("agents.run_completed", run_id=result.run_id)
     return result

@@ -1,0 +1,3 @@
+      - name: quantity
+        description: Line item quantity (handles qty alias from supplier feed)
+        tests: [not_null]

@@ -9,14 +9,17 @@ from typing import Any
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app import __version__
 from app.agents.graph import get_run_state, run_incident
+from app.chaos.engine import ChaosEngine
+from app.chaos.scenarios import list_scenarios
 from app.config import get_settings
 from app.events.bus import BUS
 from app.events.recorder import RunRecorder
 from app.events.replay import RunReplayer
+from app.fixer.github import get_fix_artifacts, get_pr_ref
 from app.logging import configure_logging
 
 configure_logging()
@@ -24,6 +27,7 @@ configure_logging()
 settings = get_settings()
 recorder = RunRecorder()
 replayer = RunReplayer(recorder=recorder, bus=BUS)
+chaos_engine = ChaosEngine()
 
 app = FastAPI(title="Kavach", version=__version__)
 
@@ -40,6 +44,19 @@ class RunTrigger(BaseModel):
     """Payload to start an incident run."""
 
     trigger: dict[str, Any] = {}
+
+
+class ChaosInjectRequest(BaseModel):
+    """Payload to inject a chaos scenario."""
+
+    scenario: str
+    seed: int = Field(default=42, ge=0)
+
+
+class ChaosHealRequest(BaseModel):
+    """Payload to heal a chaos scenario."""
+
+    scenario: str
 
 
 @app.get("/health")
@@ -90,3 +107,58 @@ async def replay_run(run_id: str) -> dict[str, Any]:
     if not events:
         raise HTTPException(status_code=404, detail="Recording not found")
     return {"run_id": run_id, "events_replayed": len(events)}
+
+
+@app.get("/chaos/scenarios")
+def chaos_scenarios() -> dict[str, list[str]]:
+    """List available chaos scenarios."""
+    return {"scenarios": list_scenarios()}
+
+
+@app.post("/chaos/inject")
+async def chaos_inject(body: ChaosInjectRequest) -> dict[str, Any]:
+    """Inject chaos and kick off an agent run."""
+    if body.scenario not in list_scenarios():
+        raise HTTPException(status_code=400, detail=f"Unknown scenario: {body.scenario}")
+    try:
+        event = chaos_engine.inject(body.scenario, body.seed)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    trigger = chaos_engine.build_trigger(body.scenario, body.seed)
+    state = await run_incident(trigger, recorder=recorder)
+    return {
+        "run_id": state.run_id,
+        "chaos_event_id": event.id,
+        "scenario": body.scenario,
+        "seed": body.seed,
+        "root_cause": state.root_cause,
+    }
+
+
+@app.post("/chaos/heal")
+def chaos_heal(body: ChaosHealRequest) -> dict[str, Any]:
+    """Revert a chaos injection."""
+    try:
+        event = chaos_engine.heal(body.scenario)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"scenario": body.scenario, "healed": True, "chaos_event_id": event.id}
+
+
+@app.get("/chaos/status")
+def chaos_status() -> dict[str, Any]:
+    """Return chaos engine status."""
+    return chaos_engine.status().model_dump(mode="json")
+
+
+@app.get("/fixes/{run_id}")
+def get_fix(run_id: str) -> dict[str, Any]:
+    """Return generated fix artifacts for a run."""
+    artifacts = get_fix_artifacts(run_id)
+    if artifacts is None:
+        raise HTTPException(status_code=404, detail="Fix not found")
+    return {
+        "run_id": run_id,
+        "pr_ref": get_pr_ref(run_id),
+        "artifacts": artifacts.model_dump(mode="json"),
+    }
