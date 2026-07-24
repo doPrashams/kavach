@@ -13,8 +13,8 @@ Status values: `pending` | `in-progress` | `done` | `BLOCKER`.
 | H05 | Chaos engine + scenarios | M3 | done | | |
 | H06 | Fixer codegen + GitHub PR flow | M3 | done | | |
 | H07 | Knowledge flywheel (postmortem RAG + MTTR) | M3 | done | | |
-| H08 | War room UI + /deck | M4 | pending | | |
-| H09 | Analytics Agent composed in | M4 | pending | | |
+| H08 | War room UI + /deck | M4 | done | | |
+| H09 | Analytics Agent composed in | M4 | done | | |
 | H10 | datahub-incident-response skill PR | M5 | pending | | |
 | H11 | Deploy (VM + Vercel) + seed replay runs | M5 | pending | | |
 | H12 | Submission assets (README, deck, video, Devpost) | M5 | pending | | |

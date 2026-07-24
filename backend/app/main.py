@@ -13,6 +13,8 @@ from pydantic import BaseModel, Field
 
 from app import __version__
 from app.agents.graph import get_run_state, run_incident
+from app.analytics.agent import AnalyticsAgentClient, Answer
+from app.analytics.demo import BeforeAfterResult, before_after
 from app.chaos.engine import ChaosEngine
 from app.chaos.scenarios import list_scenarios
 from app.config import get_settings
@@ -20,6 +22,7 @@ from app.events.bus import BUS
 from app.events.recorder import RunRecorder
 from app.events.replay import RunReplayer
 from app.fixer.github import get_fix_artifacts, get_pr_ref
+from app.flywheel.mttr import load_records
 from app.logging import configure_logging
 
 configure_logging()
@@ -28,6 +31,7 @@ settings = get_settings()
 recorder = RunRecorder()
 replayer = RunReplayer(recorder=recorder, bus=BUS)
 chaos_engine = ChaosEngine()
+analytics_client = AnalyticsAgentClient()
 
 app = FastAPI(title="Kavach", version=__version__)
 
@@ -162,3 +166,30 @@ def get_fix(run_id: str) -> dict[str, Any]:
         "pr_ref": get_pr_ref(run_id),
         "artifacts": artifacts.model_dump(mode="json"),
     }
+
+
+class AnalyticsAskRequest(BaseModel):
+    """Payload for Analytics Agent queries."""
+
+    question: str = "what happened to orders data this week?"
+
+
+@app.post("/analytics/ask")
+async def analytics_ask(body: AnalyticsAskRequest) -> Answer:
+    """Query the DataHub Analytics Agent."""
+    return await analytics_client.ask(body.question)
+
+
+@app.get("/analytics/before-after")
+async def analytics_before_after(scenario: str = "schema_drift") -> BeforeAfterResult:
+    """Compare Analytics Agent answers before and after write-back."""
+    try:
+        return await before_after(scenario=scenario)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/flywheel/mttr")
+def flywheel_mttr(scenario: str | None = None) -> list[dict[str, Any]]:
+    """Return MTTR trend records for the war room UI."""
+    return [record.model_dump(mode="json") for record in load_records(scenario=scenario)]

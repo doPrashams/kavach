@@ -1,0 +1,198 @@
+{
+  "recordingId": "demo-schema-drift-001",
+  "run": {
+    "run_id": "demo-schema-drift-001",
+    "incident_id": "inc-001",
+    "incident_urn": "urn:li:incident:4ace0924-f42e-415f-bd31-937e6c47db99",
+    "trigger": {
+      "type": "chaos",
+      "scenario": "schema_drift",
+      "seed": 42
+    },
+    "status": "resolved",
+    "severity": "high",
+    "root_cause": "Supplier feed renamed quantity to qty, breaking stg_order_items join",
+    "findings": [
+      "Sentinel: next_day_qty null rate exceeded threshold",
+      "Investigator: Prior postmortem cited for schema_drift",
+      "Impact Analyst: Downstream demand forecast deployment at risk",
+      "ML Guardian: hold (critical)",
+      "Fixer: Backfill stg_order_items and add null guard",
+      "Scribe: Postmortem saved to DataHub",
+      "Comms: Incident resolved — owners notified"
+    ],
+    "blast_radius": {
+      "source_urn": "urn:li:dataset:(urn:li:dataPlatform:duckdb,raw.order_items,PROD)",
+      "datasets": [
+        {
+          "urn": "urn:li:dataset:(urn:li:dataPlatform:duckdb,raw.order_items,PROD)",
+          "name": "raw.order_items",
+          "entity_type": "dataset",
+          "via_column": "quantity"
+        },
+        {
+          "urn": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_staging.stg_order_items,PROD)",
+          "name": "main_staging.stg_order_items",
+          "entity_type": "dataset",
+          "via_column": "quantity"
+        },
+        {
+          "urn": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features,PROD)",
+          "name": "main_marts.mart_demand_features",
+          "entity_type": "dataset",
+          "via_column": "next_day_qty"
+        }
+      ],
+      "dashboards": [
+        {
+          "urn": "urn:li:dashboard:(looker,demand_ops,PROD)",
+          "name": "Demand Ops Dashboard",
+          "entity_type": "dashboard"
+        }
+      ],
+      "ml_models": [
+        {
+          "urn": "urn:li:mlModel:(urn:li:dataPlatform:mlflow,kavach.demand_forecast,PROD)",
+          "name": "kavach.demand_forecast",
+          "entity_type": "mlModel"
+        }
+      ],
+      "ml_deployments": [
+        {
+          "urn": "urn:li:mlModelDeployment:(urn:li:dataPlatform:sagemaker,demand-forecast-prod,PROD)",
+          "name": "demand-forecast-prod",
+          "entity_type": "mlModelDeployment",
+          "via_column": "next_day_qty"
+        }
+      ]
+    },
+    "ml_risk": "critical",
+    "ml_hold_recommended": true,
+    "fix_plan": {
+      "summary": "Backfill stg_order_items and add null guard on next_day_qty",
+      "steps": [
+        "Re-run stg_order_items incremental with widened lookback",
+        "Add not-null assertion on mart_demand_features.next_day_qty",
+        "Notify ml-platform owners"
+      ],
+      "safeguard_assertion": "mart_demand_features.next_day_qty not_null",
+      "hold_recommendation": true
+    },
+    "postmortem": "## Incident: schema_drift\nRoot cause: Supplier feed renamed quantity to qty and changed type to string, breaking stg_order_items → mart_demand_features\nBlast radius: demand forecast pipeline\nFix: fix(dbt): handle supplier qty→quantity schema drift\nScenario tag: schema_drift",
+    "timeline": [],
+    "notification_sent": true
+  },
+  "events": [
+    {
+      "id": "evt-1",
+      "run_id": "demo-schema-drift-001",
+      "agent": "sentinel",
+      "event_type": "anomaly_detected",
+      "message": "next_day_qty null rate exceeded threshold on mart_demand_features",
+      "payload": { "processing_ms": 420 },
+      "timestamp": "2026-07-24T10:00:00.000Z"
+    },
+    {
+      "id": "evt-2",
+      "run_id": "demo-schema-drift-001",
+      "agent": "investigator",
+      "event_type": "prior_postmortem_cited",
+      "message": "Prior postmortem cited: schema_drift resolution",
+      "payload": { "processing_ms": 380 },
+      "timestamp": "2026-07-24T10:00:01.000Z"
+    },
+    {
+      "id": "evt-3",
+      "run_id": "demo-schema-drift-001",
+      "agent": "impact_analyst",
+      "event_type": "blast_radius_mapped",
+      "message": "Downstream demand forecast deployment at risk",
+      "payload": { "processing_ms": 310 },
+      "timestamp": "2026-07-24T10:00:02.000Z"
+    },
+    {
+      "id": "evt-4",
+      "run_id": "demo-schema-drift-001",
+      "agent": "ml_guardian",
+      "event_type": "ml_risk_assessed",
+      "message": "hold",
+      "payload": { "severity": "critical", "hold_recommended": true, "processing_ms": 290 },
+      "timestamp": "2026-07-24T10:00:03.000Z"
+    },
+    {
+      "id": "evt-5",
+      "run_id": "demo-schema-drift-001",
+      "agent": "fixer",
+      "event_type": "fix_generated",
+      "message": "Generated dbt patch + PR for schema_drift",
+      "payload": { "processing_ms": 520 },
+      "timestamp": "2026-07-24T10:00:04.000Z"
+    },
+    {
+      "id": "evt-6",
+      "run_id": "demo-schema-drift-001",
+      "agent": "scribe",
+      "event_type": "postmortem_written",
+      "message": "Postmortem saved to DataHub",
+      "payload": { "processing_ms": 260 },
+      "timestamp": "2026-07-24T10:00:05.000Z"
+    },
+    {
+      "id": "evt-7",
+      "run_id": "demo-schema-drift-001",
+      "agent": "comms",
+      "event_type": "notification_sent",
+      "message": "Incident resolved — owners notified in war room",
+      "payload": { "processing_ms": 180 },
+      "timestamp": "2026-07-24T10:00:06.000Z"
+    }
+  ],
+  "fix": {
+    "run_id": "demo-schema-drift-001",
+    "pr_ref": "https://github.com/doPrashams/kavach-demo-pipeline/pull/42",
+    "artifacts": {
+      "scenario": "schema_drift",
+      "branch_name": "kavach/fix-schema_drift-demo001",
+      "files": {
+        "models/staging/stg_order_items.sql": "select cast(coalesce(quantity, qty) as integer) as quantity from {{ source('raw', 'order_items') }}",
+        "models/schema.yml": "- name: quantity\n  tests: [not_null]"
+      },
+      "pr_title": "fix(dbt): handle supplier qty→quantity schema drift",
+      "pr_body": "Schema drift remediation linked to DataHub incident",
+      "diff": "--- a/models/staging/stg_order_items.sql\n+++ b/models/staging/stg_order_items.sql\n+cast(coalesce(quantity, qty) as integer) as quantity",
+      "incident_id": "inc-001",
+      "blast_radius_summary": "raw.order_items, mart_demand_features, demand-forecast-prod"
+    }
+  },
+  "mttrTrend": [
+    {
+      "run_id": "run-a",
+      "scenario": "schema_drift",
+      "mttr_seconds": 3.0,
+      "cited_prior": false,
+      "recorded_at": "2026-07-24T08:00:00.000Z"
+    },
+    {
+      "run_id": "run-b",
+      "scenario": "schema_drift",
+      "mttr_seconds": 2.1,
+      "cited_prior": false,
+      "recorded_at": "2026-07-24T09:00:00.000Z"
+    },
+    {
+      "run_id": "demo-schema-drift-001",
+      "scenario": "schema_drift",
+      "mttr_seconds": 0.8,
+      "cited_prior": true,
+      "recorded_at": "2026-07-24T10:00:00.000Z"
+    }
+  ],
+  "scenarios": [
+    { "id": "schema_drift", "label": "Schema drift (supplier qty rename)" },
+    { "id": "null_spike", "label": "Null spike on mart features" },
+    { "id": "value_corruption", "label": "Value corruption in staging" },
+    { "id": "freshness_lag", "label": "Freshness lag on upstream feed" },
+    { "id": "healthcare_pii", "label": "Healthcare PII exposure (simulated)", "simulated": true },
+    { "id": "nyc_taxi_freshness", "label": "NYC taxi freshness SLA breach (simulated)", "simulated": true }
+  ]
+}
