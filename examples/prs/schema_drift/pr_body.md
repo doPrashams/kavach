@@ -1,6 +1,6 @@
 ## Fix: schema drift on order_items
 
-**DataHub incident:** urn:li:incident:4ace0924-f42e-415f-bd31-937e6c47db99
+**DataHub incident:** urn:li:incident:62777acb-5732-421d-87fe-4c96add7c27d
 **Root cause:** Supplier feed renamed quantity to qty and changed type to string, breaking stg_order_items → mart_demand_features
 **Blast radius:** prod
 

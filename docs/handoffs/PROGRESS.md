@@ -15,8 +15,8 @@ Status values: `pending` | `in-progress` | `done` | `BLOCKER`.
 | H07 | Knowledge flywheel (postmortem RAG + MTTR) | M3 | done | | |
 | H08 | War room UI + /deck | M4 | done | | |
 | H09 | Analytics Agent composed in | M4 | done | | |
-| H10 | datahub-incident-response skill PR | M5 | pending | | |
-| H11 | Deploy (VM + Vercel) + seed replay runs | M5 | pending | | |
+| H10 | datahub-incident-response skill PR | M5 | done | | |
+| H11 | Deploy (VM + Vercel) + seed replay runs | M5 | done | | |
 | H12 | Submission assets (README, deck, video, Devpost) | M5 | pending | | |
 
 ## Blockers log

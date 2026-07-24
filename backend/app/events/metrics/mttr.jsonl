@@ -9,3 +9,13 @@
 {"run_id":"eeef17db-c8fb-4f4d-9290-e9437701346e","scenario":"null_spike","mttr_seconds":3.0,"cited_prior":false,"recorded_at":"2026-07-24T06:29:32.721308Z"}
 {"run_id":"5303f112-e166-4209-bd6a-b1df356ee022","scenario":"value_corruption","mttr_seconds":0.2,"cited_prior":true,"recorded_at":"2026-07-24T06:29:37.774557Z"}
 {"run_id":"f13741a6-a24b-4057-93ee-aafc0eca30ca","scenario":"schema_drift","mttr_seconds":3.0,"cited_prior":false,"recorded_at":"2026-07-24T06:29:43.933245Z"}
+{"run_id":"28ee1c23-6a01-48c7-b5d8-b4197610959d","scenario":"freshness_lag","mttr_seconds":3.0,"cited_prior":false,"recorded_at":"2026-07-24T06:51:57.023974Z"}
+{"run_id":"1dd5c0a6-24c7-4d72-841f-e7bf70245c35","scenario":"schema_drift","mttr_seconds":3.0,"cited_prior":false,"recorded_at":"2026-07-24T06:52:01.842290Z"}
+{"run_id":"9cc78a9c-59a6-4a2e-aea1-5cc0e07644c2","scenario":"null_spike","mttr_seconds":3.0,"cited_prior":false,"recorded_at":"2026-07-24T06:52:06.933112Z"}
+{"run_id":"e4dd71c8-2200-4d6a-8a83-c8e418f66b94","scenario":"value_corruption","mttr_seconds":3.0,"cited_prior":false,"recorded_at":"2026-07-24T06:52:12.115960Z"}
+{"run_id":"98137d9d-eedf-4b5b-b0e4-89041716399c","scenario":"freshness_lag","mttr_seconds":3.0,"cited_prior":false,"recorded_at":"2026-07-24T06:52:35.268229Z"}
+{"run_id":"36ca01be-9ea3-4ec4-898a-bf8a353004cc","scenario":"schema_drift","mttr_seconds":3.0,"cited_prior":false,"recorded_at":"2026-07-24T06:52:40.093814Z"}
+{"run_id":"1a60b3f0-77d9-42e7-bf87-009fe266bdde","scenario":"null_spike","mttr_seconds":3.0,"cited_prior":false,"recorded_at":"2026-07-24T06:52:45.140924Z"}
+{"run_id":"b5046bec-5808-4e53-9b0f-b63dd9fc9361","scenario":"value_corruption","mttr_seconds":3.0,"cited_prior":false,"recorded_at":"2026-07-24T06:52:50.200248Z"}
+{"run_id":"f32f3091-de14-47b9-9f7b-2c9f4f6d960d","scenario":"null_spike","mttr_seconds":0.2,"cited_prior":true,"recorded_at":"2026-07-24T06:52:57.752974Z"}
+{"run_id":"5735842a-e1c9-4a1e-a82e-5ab06c50e986","scenario":"freshness_lag","mttr_seconds":0.2,"cited_prior":true,"recorded_at":"2026-07-24T06:53:05.274335Z"}

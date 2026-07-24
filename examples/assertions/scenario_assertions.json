@@ -1,0 +1,33 @@
+{
+  "assertions": [
+    {
+      "scenario": "freshness_lag",
+      "dataset": "main_marts.mart_daily_revenue",
+      "type": "freshness",
+      "description": "mart_daily_revenue last updated > 24h ago",
+      "urn": "urn:li:assertion:freshness_lag_mart_daily_revenue"
+    },
+    {
+      "scenario": "schema_drift",
+      "dataset": "raw.order_items",
+      "type": "schema",
+      "description": "raw.order_items missing expected column quantity (found qty)",
+      "urn": "urn:li:assertion:schema_drift_order_items"
+    },
+    {
+      "scenario": "null_spike",
+      "dataset": "raw.orders",
+      "type": "custom",
+      "description": "orders.customer_id null rate > 5%",
+      "urn": "urn:li:assertion:null_spike_orders_customer"
+    },
+    {
+      "scenario": "value_corruption",
+      "dataset": "raw.order_items",
+      "type": "custom",
+      "description": "order_items.line_total contains negative or extreme outliers",
+      "urn": "urn:li:assertion:value_corruption_line_total",
+      "safeguard_test": "assert_line_total_range.sql"
+    }
+  ]
+}
