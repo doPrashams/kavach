@@ -54,3 +54,6 @@ files = ["app"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+markers = [
+    "integration: live DataHub tests (require DATAHUB_GMS_URL)",
+]
