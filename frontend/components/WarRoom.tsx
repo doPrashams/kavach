@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AgentFeed } from "@/components/AgentFeed";
+import { AskDataHubPanel } from "@/components/AskDataHubPanel";
 import { BlastRadiusGraph } from "@/components/BlastRadiusGraph";
 import { ChaosPanel } from "@/components/ChaosPanel";
 import { MlGuardianCard } from "@/components/MlGuardianCard";
@@ -123,6 +124,7 @@ export function WarRoom() {
           />
           <PrCard fix={fix} />
           <PostmortemCard postmortem={runState.postmortem} />
+          <AskDataHubPanel scenario={String(runState.trigger?.scenario ?? "schema_drift")} />
           <MttrChart trend={mttrTrend} />
         </section>
       </main>
