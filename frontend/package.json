@@ -9,7 +9,8 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "smoke": "node scripts/smoke-apis.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

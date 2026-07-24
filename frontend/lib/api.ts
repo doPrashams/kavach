@@ -1,4 +1,4 @@
-import { getDemoFixture, OFFLINE_MODE } from "@/lib/fixtures";
+import { getDemoFixture } from "@/lib/fixtures";
 import type {
   ChaosScenario,
   FixResponse,
@@ -6,10 +6,23 @@ import type {
   RunState,
 } from "@/lib/types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+/**
+ * Empty = same-origin Next.js /api demo routes (Vercel).
+ * Set NEXT_PUBLIC_API_URL to a FastAPI backend for live mode.
+ */
+const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+
+/** path is always `/api/...` for the demo app; live FastAPI omits the `/api` prefix. */
+function url(path: string): string {
+  if (API_URL) {
+    const backendPath = path.startsWith("/api") ? path.slice(4) || "/" : path;
+    return `${API_URL}${backendPath}`;
+  }
+  return path;
+}
 
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await fetch(url(path), {
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -23,23 +36,18 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export function isOfflineMode(): boolean {
-  return OFFLINE_MODE;
+  // Demo API on Vercel is fixture-backed but still hits real HTTP endpoints.
+  return !API_URL;
+}
+
+export function isDemoApi(): boolean {
+  return !API_URL;
 }
 
 export async function listScenarios(): Promise<ChaosScenario[]> {
-  if (OFFLINE_MODE) {
-    return getDemoFixture().scenarios;
-  }
   try {
-    const data = await fetchJson<{ scenarios: string[] }>("/chaos/scenarios");
-    const fixtureScenarios = getDemoFixture().scenarios.filter((s) => s.simulated);
-    return [
-      ...data.scenarios.map((id) => ({
-        id,
-        label: id.replace(/_/g, " "),
-      })),
-      ...fixtureScenarios,
-    ];
+    const data = await fetchJson<{ scenarios: ChaosScenario[] }>("/api/chaos/scenarios");
+    return data.scenarios;
   } catch {
     return getDemoFixture().scenarios;
   }
@@ -49,68 +57,68 @@ export async function injectChaos(
   scenario: string,
   seed = 42,
 ): Promise<{ run_id: string; scenario: string }> {
-  if (OFFLINE_MODE) {
-    const fixture = getDemoFixture();
-    return { run_id: fixture.recordingId, scenario };
-  }
-  return fetchJson("/chaos/inject", {
+  return fetchJson("/api/chaos/inject", {
     method: "POST",
     body: JSON.stringify({ scenario, seed }),
   });
 }
 
 export async function getRun(runId: string): Promise<RunState> {
-  if (OFFLINE_MODE) {
-    return getDemoFixture().run;
-  }
   try {
-    return await fetchJson<RunState>(`/runs/${runId}`);
+    return await fetchJson<RunState>(`/api/runs/${runId}`);
   } catch {
     return getDemoFixture().run;
   }
 }
 
 export async function getFix(runId: string): Promise<FixResponse> {
-  if (OFFLINE_MODE) {
-    return getDemoFixture().fix;
-  }
   try {
-    return await fetchJson<FixResponse>(`/fixes/${runId}`);
+    return await fetchJson<FixResponse>(`/api/fixes/${runId}`);
   } catch {
     return getDemoFixture().fix;
   }
 }
 
 export async function listRecordings(): Promise<string[]> {
-  if (OFFLINE_MODE) {
-    return [getDemoFixture().recordingId];
-  }
   try {
-    const data = await fetchJson<{ recordings: string[] }>("/recordings");
+    const data = await fetchJson<{ recordings: string[] }>("/api/recordings");
     return data.recordings;
   } catch {
     return [getDemoFixture().recordingId];
   }
 }
 
-export async function replayRecording(runId: string): Promise<{ events_replayed: number }> {
-  if (OFFLINE_MODE) {
-    return { events_replayed: getDemoFixture().events.length };
-  }
-  return fetchJson(`/replay/${runId}`, { method: "POST" });
+export async function replayRecording(
+  runId: string,
+): Promise<{ events_replayed: number; events?: unknown[] }> {
+  return fetchJson(`/api/replay/${runId}`, { method: "POST" });
 }
 
 export async function getMttrTrend(scenario?: string): Promise<MttrPoint[]> {
-  if (OFFLINE_MODE) {
-    const trend = getDemoFixture().mttrTrend;
-    return scenario ? trend.filter((point) => point.scenario === scenario) : trend;
-  }
   try {
     const query = scenario ? `?scenario=${encodeURIComponent(scenario)}` : "";
-    return await fetchJson<MttrPoint[]>(`/flywheel/mttr${query}`);
+    return await fetchJson<MttrPoint[]>(`/api/flywheel/mttr${query}`);
   } catch {
     return getDemoFixture().mttrTrend;
   }
+}
+
+export async function getSiteHealth(): Promise<SiteHealth> {
+  return fetchJson<SiteHealth>("/api/health");
+}
+
+export async function getSiteGuide(): Promise<SiteGuide> {
+  return fetchJson<SiteGuide>("/api/site/guide");
+}
+
+export async function getBeforeAfter(scenario: string) {
+  return fetchJson<{
+    scenario: string;
+    question: string;
+    before: { answer: string; has_incident_context: boolean };
+    after: { answer: string; has_incident_context: boolean };
+    delta: string[];
+  }>(`/api/analytics/before-after?scenario=${encodeURIComponent(scenario)}`);
 }
 
 export function getFixtureEvents(runId?: string) {
@@ -118,7 +126,50 @@ export function getFixtureEvents(runId?: string) {
   if (!runId || runId === fixture.recordingId) {
     return fixture.events;
   }
-  return fixture.events.map((event) => ({ ...event, run_id: runId }));
+  const scenario = runId.match(/^run-([a-z_]+)-/)?.[1] ?? "schema_drift";
+  return fixture.events.map((event, index) => ({
+    ...event,
+    id: `${runId}-evt-${index + 1}`,
+    run_id: runId,
+    message: event.message.replace(/schema_drift/g, scenario),
+  }));
+}
+
+export interface SiteHealth {
+  status: string;
+  version: string;
+  mode: string;
+  checked_at: string;
+  deployment: {
+    frontend: { name: string; url: string; routes: string[] };
+    backend_optional: { name: string; url: string; ui: string; note: string };
+    repos: { main: string; demoPipeline: string };
+  };
+  datahub: { ok: boolean; status: number; url: string };
+  apis: Array<{
+    method: string;
+    path: string;
+    widget: string;
+    ok: boolean;
+    status: number;
+    latency_ms: number;
+  }>;
+  summary: { total: number; healthy: number; failed: string[] };
+}
+
+export interface SiteGuide {
+  instructions: Array<{ step: number; title: string; body: string }>;
+  about: {
+    name: string;
+    email: string;
+    github: string;
+    repo: string;
+    demoPipeline: string;
+    blurb: string;
+  };
+  tech_stack: Array<{ layer: string; items: string[] }>;
+  tour: Array<{ id: string; target: string; title: string; body: string }>;
+  deployment: SiteHealth["deployment"];
 }
 
 export { API_URL };

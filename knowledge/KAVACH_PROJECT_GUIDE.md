@@ -54,7 +54,7 @@
 | **DataHub UI (when VM running)** | http://34.60.67.85:9002 (user/pass: `datahub` / `datahub`) |
 | **DataHub GMS API** | http://34.60.67.85:8080 |
 
-Vercel is running with **`NEXT_PUBLIC_OFFLINE_MODE=true`** — it uses fixtures + replay recordings. That is intentional and judge-safe (no keys required).
+Vercel serves the war room with **same-origin `/api/*` demo endpoints** (fixture-backed, judge-safe, no keys). **Inject Chaos** hits `POST /api/chaos/inject` and animates the agent feed. Left nav includes how-to, about, tech stack, guided tour, and live **Site health** from `GET /api/health`.
 
 ---
 

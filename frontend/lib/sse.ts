@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { API_URL, getFixtureEvents, isOfflineMode } from "@/lib/api";
+import { API_URL, getFixtureEvents, isDemoApi } from "@/lib/api";
 import type { AgentEvent } from "@/lib/types";
 
 interface UseAgentEventStreamOptions {
@@ -40,7 +40,8 @@ export function useAgentEventStream({
       return;
     }
 
-    if (isOfflineMode()) {
+    // Demo /api mode: progressive fixture events driven by scrubIndex from WarRoom
+    if (isDemoApi()) {
       const fixtureEvents = getFixtureEvents(runId);
       const limit =
         typeof replayIndex === "number"
@@ -57,7 +58,6 @@ export function useAgentEventStream({
 
     source.onopen = () => {
       setConnected(true);
-      setError(null);
     };
 
     source.onmessage = (message) => {
@@ -75,8 +75,7 @@ export function useAgentEventStream({
     };
 
     source.onerror = () => {
-      const fixtureEvents = getFixtureEvents(runId);
-      setEvents(fixtureEvents);
+      setEvents(getFixtureEvents(runId));
       setConnected(false);
       setError(null);
       source.close();
