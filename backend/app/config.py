@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
-    llm_provider: Literal["openai", "anthropic"] = "openai"
+    llm_provider: Literal["openai", "anthropic", "stub"] = "openai"
     llm_model: str = "gpt-4.1"
 
     datahub_gms_url: str | None = None
