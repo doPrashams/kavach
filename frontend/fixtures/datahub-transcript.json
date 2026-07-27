@@ -1,0 +1,110 @@
+[
+  {
+    "ts": "2026-07-27T20:00:01.120000+00:00",
+    "method": "tools/call",
+    "tool": "get_dataset",
+    "args": {
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_staging.stg_order_items,PROD)"
+    },
+    "result_summary": {
+      "type": "dict",
+      "keys": ["name", "platform", "tags", "urn"],
+      "urns": [
+        "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_staging.stg_order_items,PROD)"
+      ],
+      "preview": "{\"urn\": \"urn:li:dataset:(urn:li:dataPlatform:duckdb,main_staging.stg_order_items,PROD)\", \"name\": \"main_staging.stg_order_items\"}"
+    },
+    "latency_ms": 48.2,
+    "headers": {
+      "Authorization": "[REDACTED]",
+      "Content-Type": "application/json",
+      "Accept": "application/json, text/event-stream",
+      "MCP-Protocol-Version": "2025-06-18"
+    }
+  },
+  {
+    "ts": "2026-07-27T20:00:01.310000+00:00",
+    "method": "tools/call",
+    "tool": "get_schema",
+    "args": {
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_staging.stg_order_items,PROD)"
+    },
+    "result_summary": {
+      "type": "list",
+      "count": 5,
+      "preview": "[{\"name\": \"order_item_id\"}, {\"name\": \"qty\"}]"
+    },
+    "latency_ms": 36.4,
+    "headers": {
+      "Authorization": "[REDACTED]",
+      "Content-Type": "application/json"
+    }
+  },
+  {
+    "ts": "2026-07-27T20:00:01.580000+00:00",
+    "method": "tools/call",
+    "tool": "get_blast_radius",
+    "args": {
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_staging.stg_order_items,PROD)"
+    },
+    "result_summary": {
+      "type": "dict",
+      "keys": ["dashboards", "datasets", "ml_deployments", "ml_models"],
+      "urns": [
+        "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features,PROD)",
+        "urn:li:mlModel:(urn:li:dataPlatform:mlflow,kavach.demand_forecast,PROD)"
+      ],
+      "preview": "{\"datasets\": [\"main_staging.stg_order_items\", \"main_marts.mart_demand_features\"]}"
+    },
+    "latency_ms": 92.7,
+    "headers": {
+      "Authorization": "[REDACTED]",
+      "Content-Type": "application/json"
+    }
+  },
+  {
+    "ts": "2026-07-27T20:00:02.040000+00:00",
+    "method": "tools/call",
+    "tool": "get_downstreams",
+    "args": {
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_staging.stg_order_items,PROD)",
+      "depth": 2,
+      "column_level": true
+    },
+    "result_summary": {
+      "type": "list",
+      "count": 2,
+      "urns": [
+        "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_marts.mart_demand_features,PROD)"
+      ],
+      "preview": "[{\"source\": \"main_staging.stg_order_items\", \"target\": \"main_marts.mart_demand_features\"}]"
+    },
+    "latency_ms": 71.1,
+    "headers": {
+      "Authorization": "[REDACTED]",
+      "Content-Type": "application/json"
+    }
+  },
+  {
+    "ts": "2026-07-27T20:00:02.410000+00:00",
+    "method": "tools/call",
+    "tool": "search",
+    "args": {
+      "query": "stg_order_items quantity",
+      "limit": 5
+    },
+    "result_summary": {
+      "type": "list",
+      "count": 1,
+      "urns": [
+        "urn:li:dataset:(urn:li:dataPlatform:duckdb,main_staging.stg_order_items,PROD)"
+      ],
+      "preview": "[{\"name\": \"main_staging.stg_order_items\"}]"
+    },
+    "latency_ms": 55.0,
+    "headers": {
+      "Authorization": "[REDACTED]",
+      "Content-Type": "application/json"
+    }
+  }
+]

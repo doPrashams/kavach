@@ -11,6 +11,7 @@ import structlog
 from tenacity import retry, retry_if_exception, stop_after_attempt, wait_exponential
 
 from app.config import Settings
+from app.datahub.transcript import get_transcript_recorder, timed_tool_call
 from app.errors import DataHubError
 
 logger = structlog.get_logger(__name__)
@@ -275,29 +276,49 @@ class DataHubMCPClient:
         reraise=True,
     )
     async def call_tool(self, name: str, arguments: dict[str, Any] | None = None) -> Any:
-        """Invoke an MCP tool via JSON-RPC tools/call."""
+        """Invoke an MCP tool via JSON-RPC tools/call (records a redacted transcript)."""
         if not self.is_configured:
             raise DataHubError("MCP client not configured")
-        async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as client:
-            await self._ensure_initialized(client)
+        args = arguments or {}
+        # Receipt headers are redacted (Authorization / Bearer stripped) before write.
+        receipt_headers = self._headers(with_session=True)
+        error_msg: str | None = None
+        unwrapped: Any = None
+        with timed_tool_call() as timer:
             try:
-                result = await self._rpc(
-                    "tools/call",
-                    {"name": name, "arguments": arguments or {}},
-                    client=client,
-                )
-            except DataHubError as exc:
-                # Stale session → re-handshake once per call_tool attempt.
-                if "404" in str(exc) and self._session_id:
-                    logger.warning("datahub.mcp.session_reset", tool=name)
-                    self._initialized = False
-                    self._session_id = None
+                async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as client:
                     await self._ensure_initialized(client)
-                    result = await self._rpc(
-                        "tools/call",
-                        {"name": name, "arguments": arguments or {}},
-                        client=client,
-                    )
-                else:
-                    raise
-        return self._unwrap_tool_result(result)
+                    try:
+                        result = await self._rpc(
+                            "tools/call",
+                            {"name": name, "arguments": args},
+                            client=client,
+                        )
+                    except DataHubError as exc:
+                        # Stale session → re-handshake once per call_tool attempt.
+                        if "404" in str(exc) and self._session_id:
+                            logger.warning("datahub.mcp.session_reset", tool=name)
+                            self._initialized = False
+                            self._session_id = None
+                            await self._ensure_initialized(client)
+                            result = await self._rpc(
+                                "tools/call",
+                                {"name": name, "arguments": args},
+                                client=client,
+                            )
+                        else:
+                            raise
+                unwrapped = self._unwrap_tool_result(result)
+            except Exception as exc:
+                error_msg = str(exc)
+                raise
+            finally:
+                get_transcript_recorder().record_tool_call(
+                    name,
+                    args,
+                    unwrapped,
+                    latency_ms=timer.elapsed_ms(),
+                    headers=receipt_headers,
+                    error=error_msg,
+                )
+        return unwrapped

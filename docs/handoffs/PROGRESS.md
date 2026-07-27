@@ -28,7 +28,7 @@ Status values: `pending` | `in-progress` | `done` | `BLOCKER`.
 | H20 | Wake VM + load datapacks | M5 | pending | | |
 | H21 | Real Agent Context Kit | M5 | pending | | TOP PRIORITY |
 | H22 | Real MCP JSON-RPC client | M5 | pending | | TOP PRIORITY |
-| H23 | DataHub receipts + evidence panel | M5 | pending | | |
+| H23 | DataHub receipts + evidence panel | M5 | done | | |
 | H24 | Re-record runs + honest MTTR | M5 | pending | | |
 | H25 | Healthcare warehouse seed | M5 | pending | | droppable → metadata-only |
 | H26 | Fixer PRs + media | M5 | pending | | |

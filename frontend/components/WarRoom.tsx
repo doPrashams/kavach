@@ -9,6 +9,7 @@ import { AskDataHubPanel } from "@/components/AskDataHubPanel";
 import { Atlas } from "@/components/Atlas";
 import { BlastRadiusGraph } from "@/components/BlastRadiusGraph";
 import { ChaosPanel } from "@/components/ChaosPanel";
+import { DataHubEvidence } from "@/components/DataHubEvidence";
 import { IncidentReport } from "@/components/IncidentReport";
 import { LeftNav } from "@/components/LeftNav";
 import { LiveDataPanel } from "@/components/LiveDataPanel";
@@ -373,6 +374,7 @@ export function WarRoom() {
             <div data-tour-id="tour-feed">
               <AgentFeed events={displayEvents} />
             </div>
+            <DataHubEvidence active={Boolean(runId)} />
             <div data-tour-id="tour-blast">
               <BlastRadiusGraph blastRadius={activeRun.blast_radius} />
             </div>
