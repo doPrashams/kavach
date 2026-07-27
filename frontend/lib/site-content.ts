@@ -148,3 +148,271 @@ export const DEPLOYMENT_INFO = {
     demoPipeline: "https://github.com/doPrashams/kavach-demo-pipeline",
   },
 } as const;
+
+/** Atlas — single source of truth for “How Kavach works” (H16 content; H17 UI). */
+
+export const ATLAS_MOTTO = [
+  "Thesis: Kavach is armor for the data platform — AI agents on DataHub’s context graph that detect, diagnose, fix, and learn from incidents.",
+  "Health for systems, health for humans: the same agents heal a retail warehouse and a healthcare domain.",
+  "Loop: chaos breaks it → agents detect → root-cause → gate the model → open a real PR → write knowledge back.",
+].join("\n");
+
+export const ATLAS_STACK = [
+  {
+    id: "datahub",
+    name: "DataHub",
+    logo: "/logos/datahub.svg",
+    whatItIs: "Open-source metadata platform — lineage, incidents, ML entities, glossary, Context Documents.",
+    whatWeUseItFor:
+      "The context graph agents read and write: lineage for RCA, blast radius, incidents, assertions, postmortems, glossary tags.",
+    whereInRepo: "backend/app/datahub/",
+    featured: true,
+  },
+  {
+    id: "gcp",
+    name: "GCP",
+    logo: "/logos/googlecloud.svg",
+    whatItIs: "Google Cloud — compute for the self-hosted DataHub VM.",
+    whatWeUseItFor: "Hosts kavach-datahub (GMS :8080, UI :9002) for live metadata demos.",
+    whereInRepo: "deploy/README.md",
+  },
+  {
+    id: "vercel",
+    name: "Vercel",
+    logo: "/logos/vercel.svg",
+    whatItIs: "Frontend hosting and edge/serverless for Next.js.",
+    whatWeUseItFor: "Serves the war room, /deck, and fixture-backed /api routes for judges.",
+    whereInRepo: "deploy/VERCEL.md",
+  },
+  {
+    id: "duckdb",
+    name: "DuckDB",
+    logo: "/logos/duckdb.svg",
+    whatItIs: "In-process analytical SQL warehouse.",
+    whatWeUseItFor: "Retail (and seeded) warehouse that chaos injects into and agents heal.",
+    whereInRepo: "data/",
+  },
+  {
+    id: "dbt",
+    name: "dbt",
+    logo: "/logos/dbt.svg",
+    whatItIs: "Analytics engineering toolkit — staging/marts, tests, contracts.",
+    whatWeUseItFor: "Models + tests the Fixer patches; demo PRs land in kavach-demo-pipeline.",
+    whereInRepo: "kavach-demo-pipeline/models/",
+  },
+  {
+    id: "mlflow",
+    name: "MLflow",
+    logo: "/logos/mlflow.svg",
+    whatItIs: "ML experiment tracking and model registry.",
+    whatWeUseItFor: "Tracks demand-forecast training runs wired into DataHub ML lineage.",
+    whereInRepo: "ml/",
+  },
+  {
+    id: "langgraph",
+    name: "LangGraph",
+    logo: "/logos/langchain.svg",
+    whatItIs: "Stateful multi-agent orchestration on LangChain.",
+    whatWeUseItFor: "Seven-agent incident team (Sentinel → … → Comms) with typed state + SSE.",
+    whereInRepo: "backend/app/agents/graph.py",
+  },
+  {
+    id: "nextjs",
+    name: "Next.js",
+    logo: "/logos/nextdotjs.svg",
+    whatItIs: "React App Router framework.",
+    whatWeUseItFor: "War room UI, /deck pitch, and self-contained demo APIs.",
+    whereInRepo: "frontend/",
+  },
+  {
+    id: "scikit-learn",
+    name: "scikit-learn",
+    logo: "/logos/scikitlearn.svg",
+    whatItIs: "Classical ML library for Python.",
+    whatWeUseItFor: "Trains the demand-forecast model whose deployment ML Guardian can HOLD.",
+    whereInRepo: "ml/train.py",
+  },
+  {
+    id: "python",
+    name: "Python",
+    logo: "/logos/python.svg",
+    whatItIs: "Backend language (3.12) for API, agents, chaos, and ML.",
+    whatWeUseItFor: "FastAPI app, LangGraph nodes, DuckDB/dbt orchestration, Fixer codegen.",
+    whereInRepo: "backend/",
+  },
+  {
+    id: "github",
+    name: "GitHub",
+    logo: "/logos/github.svg",
+    whatItIs: "Source control, CI, and PR workflow.",
+    whatWeUseItFor: "Fixer opens real remediation PRs against kavach-demo-pipeline; CI gates the monorepo.",
+    whereInRepo: "examples/prs/",
+  },
+] as const;
+
+export const ATLAS_DATAHUB_MATRIX = [
+  {
+    capability: "MCP Server",
+    access: "READ|WRITE" as const,
+    path: "backend/app/datahub/mcp.py",
+  },
+  {
+    capability: "Agent Context Kit",
+    access: "READ|WRITE" as const,
+    path: "backend/app/datahub/context_kit.py",
+  },
+  {
+    capability: "Lineage (table + column)",
+    access: "READ" as const,
+    path: "backend/app/datahub/service.py",
+  },
+  {
+    capability: "ML entities (feature → model → deployment)",
+    access: "READ|WRITE" as const,
+    path: "ml/lineage.py",
+  },
+  {
+    capability: "Query history",
+    access: "READ" as const,
+    path: "data/fixtures/queries.json",
+  },
+  {
+    capability: "Incidents",
+    access: "READ|WRITE" as const,
+    path: "backend/app/agents/nodes/sentinel.py",
+  },
+  {
+    capability: "Assertions",
+    access: "WRITE" as const,
+    path: "examples/assertions/",
+  },
+  {
+    capability: "Context Documents",
+    access: "READ|WRITE" as const,
+    path: "backend/app/flywheel/",
+  },
+  {
+    capability: "Glossary / ownership",
+    access: "READ|WRITE" as const,
+    path: "backend/app/agents/nodes/comms.py",
+  },
+  {
+    capability: "Analytics Agent",
+    access: "READ" as const,
+    path: "backend/app/analytics/",
+  },
+  {
+    capability: "Skills (OSS)",
+    access: "READ" as const,
+    path: "skills/datahub-incident-response/",
+  },
+] as const;
+
+export const ATLAS_DATA_SOURCES = [
+  {
+    id: "fiction-retail",
+    name: "fiction-retail",
+    kind: "DataHub datapack",
+    license: "Apache-2.0 (hackathon resources)",
+    whySafe: "Official DataHub sample retail metadata — safe to ingest and cite in an Apache-2.0 repo.",
+    usedFor: "Primary retail catalog + lineage backdrop for chaos scenarios.",
+  },
+  {
+    id: "healthcare",
+    name: "healthcare",
+    kind: "DataHub datapack",
+    license: "Apache-2.0 (hackathon resources)",
+    whySafe: "Synthetic patient metadata (~55k records) with planted DQ issues — no real PHI.",
+    usedFor: "Second domain: health for humans (PII exposure / clinical null spikes).",
+  },
+  {
+    id: "nyc-taxi",
+    name: "nyc-taxi",
+    kind: "DataHub datapack",
+    license: "Apache-2.0 (hackathon resources)",
+    whySafe: "Official DataHub taxi metadata pack — catalog only, no proprietary rows.",
+    usedFor: "Taxi-domain freshness / SLA catalog context alongside live TLC probes.",
+  },
+  {
+    id: "nyc-tlc",
+    name: "NYC TLC Yellow Taxi",
+    kind: "Public trip data",
+    license: "NYC Open Data / TLC terms (public)",
+    whySafe: "City-published trip records; we cite anomalies that already exist in the feed.",
+    usedFor: "Live data probe in the war room (negative fares, zero passengers, bad timestamps).",
+  },
+] as const;
+
+export const ATLAS_CONNECTIONS = [
+  {
+    id: "mcp-endpoint",
+    label: "MCP endpoint",
+    detail:
+      "Live tools target {DATAHUB_GMS_URL}/mcp when set; otherwise fixtures power offline demos.",
+    value: "http://34.60.67.85:8080/mcp (self-hosted GMS)",
+    whereConfigured: "backend/app/datahub/mcp.py",
+  },
+  {
+    id: "hosting-mode",
+    label: "Self-hosted vs cloud",
+    detail:
+      "Default demo uses OSS self-hosted DataHub on GCP. DataHub Cloud (Ask DataHub) is optional / trial-only.",
+    value: "Self-hosted OSS (GCP VM) · Cloud trial optional",
+    whereConfigured: "deploy/README.md",
+  },
+  {
+    id: "cursor-mcp",
+    label: "Cursor mcp.json",
+    detail:
+      "Repo ships .cursor/mcp.json wired to env vars (DATAHUB_GMS_URL, DATAHUB_TOKEN) — never hardcoded secrets.",
+    value: ".cursor/mcp.json (env-driven)",
+    whereConfigured: ".cursor/mcp.json",
+  },
+  {
+    id: "mutations",
+    label: "Mutations",
+    detail:
+      "Write path enabled when live: incidents, tags, glossary, Context Documents, assertions. Fixture mode appends to writeback.jsonl.",
+    value: "TOOLS_IS_MUTATION_ENABLED / live GMS token",
+    whereConfigured: "backend/app/datahub/service.py",
+  },
+] as const;
+
+export const ATLAS_REAL_VS_SIMULATED = [
+  {
+    id: "schema_drift",
+    label: "Schema drift (supplier qty rename)",
+    kind: "real" as const,
+    note: "Deterministic chaos on DuckDB/dbt retail warehouse; Fixer PR artifacts in examples/prs/.",
+  },
+  {
+    id: "null_spike",
+    label: "Null spike on orders.customer_id",
+    kind: "real" as const,
+    note: "Injected nulls in the retail pipeline; agents remediate with tests + PR.",
+  },
+  {
+    id: "value_corruption",
+    label: "Value corruption in order_items.unit_price",
+    kind: "real" as const,
+    note: "War-room probe also shows genuine NYC TLC negative fares; Fixer PR merged in demo-pipeline.",
+  },
+  {
+    id: "freshness_lag",
+    label: "Freshness lag on upstream orders feed",
+    kind: "real" as const,
+    note: "Stalled partition + freshness SLA on the retail feed.",
+  },
+  {
+    id: "healthcare_pii",
+    label: "Healthcare PII exposure",
+    kind: "simulated" as const,
+    note: "Declared simulation — synthetic patients / no real PHI; labeled in UI and fixtures.",
+  },
+  {
+    id: "nyc_taxi_freshness",
+    label: "NYC taxi freshness SLA breach",
+    kind: "simulated" as const,
+    note: "Declared simulation for the scenario path; TLC probe rows themselves are real public data.",
+  },
+] as const;
