@@ -14,8 +14,10 @@ AI agents on DataHub's context graph detect, diagnose, fix, and learn from data 
 
 Data incidents still mean tab-hopping: lineage in one tool, ownership in another, postmortems
 in docs nobody reads. ML deployments make it worse — a bad mart column can silently poison
-production models. We built Kavach to give agents **one surface** — DataHub's metadata graph —
-for the full incident lifecycle.
+production models. The same class of failure in a clinical code column is not a dashboard
+problem — it is a patient-safety problem. We built Kavach for **health for systems and health
+for humans**: one agent team on DataHub's context graph for retail/ML reliability and PHI
+governance alike.
 
 ## What it does
 
@@ -34,29 +36,32 @@ with zero API keys for judges.
 - **Data platform:** DuckDB + dbt retail pipeline with DataHub ingestion
 - **ML:** scikit-learn demand forecast with full ML lineage in DataHub
 - **Frontend:** Next.js war room (React Flow blast radius) + `/deck` presentation mode
-- **DataHub:** MCP Server, Agent Context Kit, incidents, assertions, Analytics Agent
-- **Deploy:** Docker Compose (MLflow + backend), Vercel frontend, GCP VM runbook
+- **DataHub:** real MCP Server (JSON-RPC / Streamable HTTP), Agent Context Kit
+  (`datahub-agent-context` + LangChain tools), Skills, incidents, assertions, glossary write-back
+- **Deploy:** Docker Compose (MLflow + backend + mcp-server-datahub), Vercel frontend
+  ([kavach-self.vercel.app](https://kavach-self.vercel.app)), GCP OSS quickstart for build,
+  DataHub Cloud trial planned for judging (Ask DataHub)
 
 ## Challenges
 
-- **Graceful degradation** — every DataHub call works offline via fixtures when the VM is unreachable
-- **Deterministic demos** — fixed-seed chaos + StubLLM + JSONL replay for reproducible judge experience
+- **Speak real MCP** — replaced a fake `/mcp/tools` client with JSON-RPC initialize + tools/call
+- **Declared simulation** — LIVE / REPLAY / DEMO badge; fixtures labeled honestly for judges
 - **ML blast radius** — column-level lineage through features to deployment hold decisions
 
 ## Accomplishments
 
-- 7-agent incident response team end-to-end
-- 4 chaos scenarios + 2 simulated extras with committed replay recordings
-- Measurable MTTR flywheel (15× faster on repeat schema_drift)
-- OSS **datahub-incident-response** skill ready for upstream PR
-- Judge-facing artifacts in `examples/` — PRs, postmortems, assertions, risk reports
+- 7-agent incident response team end-to-end with real ACK tools (`get_dataset_queries`,
+  `draft_sql_for_tables`, mutations)
+- Retail + healthcare domains (systems / humans) including `phi_exposure` governance scenario
+- Atlas ("How Kavach works") — logo grid + DataHub READ/WRITE matrix for judges
+- OSS skill PR: https://github.com/datahub-project/datahub-skills/pull/61
+- Judge-facing `examples/` — PRs, postmortems, assertions, redacted MCP transcripts
 
 ## What's next
 
-- Live DataHub VM integration for full MCP write-back in production
-- Slack/PagerDuty comms integration
-- Expand scenario library (healthcare PII, NYC taxi) with real connectors
-- Merge skill to `datahub-project/datahub-skills`
+- Start DataHub Cloud 21-day trial Aug 10–11 for judging + Ask DataHub beat
+- Record 3-min video; submit Devpost early; join `#agent-hackathon`
+- Merge skill PR; optional healthcare DuckDB warehouse seed (H25)
 
 ## Built with
 

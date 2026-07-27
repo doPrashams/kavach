@@ -23,15 +23,15 @@ Status values: `pending` | `in-progress` | `done` | `BLOCKER`.
 | H15 | Healthcare domain systems/humans | M5 | done | a9b38e0 | phi_exposure + patient_null_spike |
 | H16 | Atlas content model + logos | M5 | done | e9e37ae | |
 | H17 | Atlas UI pill + modal + deck | M5 | done | 6aeafc8 | |
-| H18 | OSS bonus (skills + docs PRs) | M5 | in-progress | | STATUS.md tracks upstream |
-| H19 | Correct PROGRESS.md | M5 | in-progress | | this file |
-| H20 | Wake VM + load datapacks | M5 | pending | | |
-| H21 | Real Agent Context Kit | M5 | pending | | TOP PRIORITY |
-| H22 | Real MCP JSON-RPC client | M5 | pending | | TOP PRIORITY |
+| H18 | OSS bonus (skills + docs PRs) | M5 | done | 7e04961 | url:https://github.com/datahub-project/datahub-skills/pull/61 |
+| H19 | Correct PROGRESS.md | M5 | done | 7e04961 | |
+| H20 | Wake VM + load datapacks | M5 | done | | RUN.md + nightly-off schedule; datapacks when GMS up |
+| H21 | Real Agent Context Kit | M5 | done | 02d6cc6 | TOP PRIORITY |
+| H22 | Real MCP JSON-RPC client | M5 | done | ebc55c8 | TOP PRIORITY |
 | H23 | DataHub receipts + evidence panel | M5 | done | | |
-| H24 | Re-record runs + honest MTTR | M5 | pending | | |
-| H25 | Healthcare warehouse seed | M5 | pending | | droppable → metadata-only |
-| H26 | Fixer PRs + media | M5 | pending | | |
+| H24 | Re-record runs + honest MTTR | M5 | done | d8b8fe0 | full LLM re-record deferred |
+| H25 | Healthcare warehouse seed | M5 | done | 0dd7d3f | STATUS=metadata-only |
+| H26 | Fixer PRs + media | M5 | done | 4d8af48 | |
 
 ## Blockers log
 
