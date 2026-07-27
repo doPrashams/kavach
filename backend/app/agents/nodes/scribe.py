@@ -75,8 +75,7 @@ async def run(state: IncidentState, ctx: AgentContext) -> IncidentState:
         resolve_tags.extend(["PII", "HIPAA"])
     await ctx.datahub.add_tags(urn, resolve_tags)
     if is_phi:
-        await ctx.datahub.add_glossary_term(urn, HIPAA_TERM)
-        await ctx.datahub.add_glossary_term(urn, PII_TERM)
+        await ctx.datahub.add_terms(urn, [HIPAA_TERM, PII_TERM])
         await ctx.datahub.update_description(
             urn, "Patient analytics mart — post-incident (PHI masked, HIPAA/PII tagged)"
         )

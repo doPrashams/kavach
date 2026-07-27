@@ -55,10 +55,24 @@ async def run(state: IncidentState, ctx: AgentContext) -> IncidentState:
         return state
 
     upstreams = await ctx.datahub.get_upstreams(TARGET, depth=2)
+    # Prefer ACK/MCP SQL helpers when live; fixture backend still serves queries.
     queries = await ctx.datahub.get_dataset_queries(TARGET)
+    sql_context = await ctx.datahub.find_sql_context(
+        f"root cause analysis for {TARGET} next_day_qty"
+    )
+    drafted = await ctx.datahub.draft_sql_for_tables(
+        [TARGET],
+        f"Investigate anomalous values in {TARGET}",
+    )
+    context_docs = await ctx.datahub.retrieve_context(TARGET, query="next_day_qty")
+    grounding = ctx.datahub.context_kit.format_for_prompt(context_docs)
+
     prompt = (
         f"{PROMPT}\nUpstreams: {[e.upstream for e in upstreams]}\n"
-        f"Sample query: {queries[0].query if queries else 'n/a'}"
+        f"Sample query: {queries[0].query if queries else 'n/a'}\n"
+        f"SQL context: {sql_context}\n"
+        f"Drafted SQL: {drafted}\n"
+        f"{grounding}"
     )
     raw = await ctx.llm.complete(AgentName.INVESTIGATOR, prompt)
     parsed = json.loads(raw)

@@ -467,11 +467,40 @@ class FixtureBackend:
         self._append_writeback("emit_assertion", assertion.model_dump(mode="json"))
         return assertion
 
-    async def add_glossary_term(self, entity_urn: str, term_urn: str) -> dict[str, Any]:
-        """Attach a glossary term to an entity."""
-        term = self._glossary.get(term_urn)
-        if term is None:
-            raise DataHubError(f"Glossary term not found: {term_urn}")
-        payload = {"entity_urn": entity_urn, "term": term.model_dump(mode="json")}
-        self._append_writeback("add_glossary_term", payload)
+    async def add_terms(self, entity_urn: str, term_urns: list[str]) -> dict[str, Any]:
+        """Attach glossary terms to an entity (ACK/MCP add_terms)."""
+        terms = []
+        for term_urn in term_urns:
+            term = self._glossary.get(term_urn)
+            if term is None:
+                raise DataHubError(f"Glossary term not found: {term_urn}")
+            terms.append(term.model_dump(mode="json"))
+        payload = {"entity_urn": entity_urn, "terms": terms}
+        self._append_writeback("add_terms", payload)
         return payload
+
+    async def add_glossary_term(self, entity_urn: str, term_urn: str) -> dict[str, Any]:
+        """Backward-compatible alias for add_terms (single term)."""
+        return await self.add_terms(entity_urn, [term_urn])
+
+    async def find_sql_context(self, query_text: str) -> dict[str, Any]:
+        """Fixture fallback for MCP find_sql_context."""
+        matches = [
+            item
+            for item in self._queries
+            if query_text.lower() in str(item.get("query", "")).lower()
+            or query_text.lower() in str(item.get("dataset", "")).lower()
+        ]
+        return {
+            "query_text": query_text,
+            "tables": list({m.get("dataset") for m in matches if m.get("dataset")}),
+            "sample_queries": [m.get("query") for m in matches[:5]],
+        }
+
+    async def draft_sql_for_tables(
+        self, table_urns: list[str], prompt: str
+    ) -> dict[str, Any]:
+        """Fixture fallback for MCP draft_sql_for_tables."""
+        tables = ", ".join(table_urns) if table_urns else "unknown_table"
+        sql = f"-- drafted offline for: {prompt}\nSELECT * FROM {tables} LIMIT 100"
+        return {"prompt": prompt, "table_urns": table_urns, "sql": sql}

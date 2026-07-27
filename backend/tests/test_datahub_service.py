@@ -110,7 +110,7 @@ async def test_write_methods_append_to_writeback(service: DataHubContextService)
   await service.update_incident(incident.urn, status=IncidentStatus.INVESTIGATING)
   await service.resolve_incident(incident.urn)
   await service.emit_assertion(urn, AssertionType.CUSTOM, "next_day_qty not null")
-  await service.add_glossary_term(urn, "urn:li:glossaryTerm:demand")
+  await service.add_terms(urn, ["urn:li:glossaryTerm:demand"])
 
   entries = _read_writeback()
   ops = {e["operation"] for e in entries}
@@ -121,6 +121,25 @@ async def test_write_methods_append_to_writeback(service: DataHubContextService)
       "create_incident",
       "update_incident",
       "emit_assertion",
-      "add_glossary_term",
+      "add_terms",
   ):
     assert expected in ops
+
+
+@pytest.mark.asyncio
+async def test_sql_helpers_fixture_fallback(service: DataHubContextService) -> None:
+  ctx = await service.find_sql_context("mart_demand_features")
+  assert "sample_queries" in ctx
+  draft = await service.draft_sql_for_tables(
+      ["main_marts.mart_demand_features"], "check next_day_qty"
+  )
+  assert "sql" in draft
+  assert service.get_langchain_tools() == []
+
+
+@pytest.mark.asyncio
+async def test_retrieve_context_offline_empty(service: DataHubContextService) -> None:
+  docs = await service.retrieve_context("main_marts.mart_demand_features")
+  assert docs == []
+  searched = await service.search_documents("demand")
+  assert searched == []

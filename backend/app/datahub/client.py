@@ -55,7 +55,9 @@ class DataHubBackend(Protocol):
     async def emit_assertion(
         self, dataset_urn_val: str, assertion_type: AssertionType, description: str
     ) -> Assertion: ...
-    async def add_glossary_term(self, entity_urn: str, term_urn: str) -> dict[str, Any]: ...
+    async def add_terms(self, entity_urn: str, term_urns: list[str]) -> dict[str, Any]: ...
+    async def find_sql_context(self, query_text: str) -> Any: ...
+    async def draft_sql_for_tables(self, table_urns: list[str], prompt: str) -> Any: ...
 
 
 class LiveDataHubBackend:
@@ -164,14 +166,22 @@ class LiveDataHubBackend:
         )
         return Assertion.model_validate(raw)
 
-    async def add_glossary_term(self, entity_urn: str, term_urn: str) -> dict[str, Any]:
+    async def add_terms(self, entity_urn: str, term_urns: list[str]) -> dict[str, Any]:
         result = await self._call(
-            "add_glossary_term", {"entity_urn": entity_urn, "term_urn": term_urn}
+            "add_terms", {"entity_urn": entity_urn, "terms": term_urns}
         )
         return (
             dict(result)
             if isinstance(result, dict)
-            else {"entity_urn": entity_urn, "term_urn": term_urn}
+            else {"entity_urn": entity_urn, "terms": term_urns}
+        )
+
+    async def find_sql_context(self, query_text: str) -> Any:
+        return await self._call("find_sql_context", {"query_text": query_text})
+
+    async def draft_sql_for_tables(self, table_urns: list[str], prompt: str) -> Any:
+        return await self._call(
+            "draft_sql_for_tables", {"table_urns": table_urns, "prompt": prompt}
         )
 
 
@@ -308,8 +318,18 @@ class DataHubClient:
             ),
         )
 
-    async def add_glossary_term(self, entity_urn: str, term_urn: str) -> dict[str, Any]:
+    async def add_terms(self, entity_urn: str, term_urns: list[str]) -> dict[str, Any]:
         return cast(
             dict[str, Any],
-            await self._with_fallback("add_glossary_term", entity_urn, term_urn),
+            await self._with_fallback("add_terms", entity_urn, term_urns),
         )
+
+    async def find_sql_context(self, query_text: str) -> Any:
+        return await self._with_fallback("find_sql_context", query_text)
+
+    async def draft_sql_for_tables(self, table_urns: list[str], prompt: str) -> Any:
+        return await self._with_fallback("draft_sql_for_tables", table_urns, prompt)
+
+    async def add_glossary_term(self, entity_urn: str, term_urn: str) -> dict[str, Any]:
+        """Backward-compatible alias for add_terms (single term)."""
+        return await self.add_terms(entity_urn, [term_urn])

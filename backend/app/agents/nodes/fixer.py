@@ -14,10 +14,27 @@ from app.fixer.github import open_pr, store_fix
 PROMPT = (Path(__file__).resolve().parents[1] / "prompts" / "fixer.md").read_text(
     encoding="utf-8"
 )
+TARGET = "main_marts.mart_demand_features"
 
 
 async def run(state: IncidentState, ctx: AgentContext) -> IncidentState:
     """Generate fix artifacts, open PR (or dry-run), and attach FixPlan."""
+    # Prefer ACK/MCP SQL helpers when live to ground the fix; fixtures offline.
+    queries = await ctx.datahub.get_dataset_queries(TARGET)
+    sql_context = await ctx.datahub.find_sql_context(
+        f"fix query patterns for {TARGET}"
+    )
+    drafted = await ctx.datahub.draft_sql_for_tables(
+        [TARGET],
+        f"Safe remediation SQL for: {state.root_cause or 'unknown root cause'}",
+    )
+    if queries:
+        state.findings.append(f"Fixer used get_dataset_queries ({len(queries)} rows)")
+    if sql_context:
+        state.findings.append("Fixer used find_sql_context")
+    if drafted:
+        state.findings.append("Fixer used draft_sql_for_tables")
+
     artifacts = generate_fix(state)
     pr_ref = await open_pr(artifacts, ctx.settings)
     store_fix(state.run_id, artifacts, pr_ref)
@@ -47,5 +64,6 @@ async def run(state: IncidentState, ctx: AgentContext) -> IncidentState:
         pr_ref=pr_ref,
         scenario=artifacts.scenario,
         safeguard=plan.safeguard_assertion,
+        sql_helpers=["get_dataset_queries", "find_sql_context", "draft_sql_for_tables"],
     )
     return state

@@ -34,6 +34,15 @@ class DataHubContextService:
         mcp_call = self._client._mcp.call_tool if self._client.is_live else None
         self._context_kit = AgentContextKit(self._settings, mcp_call=mcp_call)
 
+    @property
+    def context_kit(self) -> AgentContextKit:
+        """Expose Agent Context Kit for nodes that need LangChain tools directly."""
+        return self._context_kit
+
+    def get_langchain_tools(self) -> list[Any]:
+        """Real ACK tools from build_langchain_tools(include_mutations=True)."""
+        return self._context_kit.get_langchain_tools()
+
     async def get_dataset(self, urn_or_name: str) -> DatasetRef:
         """Fetch dataset metadata."""
         return await self._client.get_dataset(urn_or_name)
@@ -76,8 +85,30 @@ class DataHubContextService:
         return radius.model_dump(mode="json")
 
     async def get_dataset_queries(self, urn_or_name: str) -> list[QueryRecord]:
-        """Fetch historical queries for a dataset."""
+        """Fetch historical queries for a dataset (ACK/MCP get_dataset_queries)."""
         return await self._client.get_dataset_queries(urn_or_name)
+
+    async def find_sql_context(self, query_text: str) -> Any:
+        """Locate tables/columns/example queries (MCP find_sql_context)."""
+        if self._client.is_live:
+            try:
+                result = await self._context_kit.find_sql_context(query_text)
+                if result is not None:
+                    return result
+            except Exception:  # noqa: BLE001
+                pass
+        return await self._client.find_sql_context(query_text)
+
+    async def draft_sql_for_tables(self, table_urns: list[str], prompt: str) -> Any:
+        """Draft SQL grounded in catalog context (MCP draft_sql_for_tables)."""
+        if self._client.is_live:
+            try:
+                result = await self._context_kit.draft_sql_for_tables(table_urns, prompt)
+                if result is not None:
+                    return result
+            except Exception:  # noqa: BLE001
+                pass
+        return await self._client.draft_sql_for_tables(table_urns, prompt)
 
     async def get_ml_model(self, urn: str) -> MLModelRef:
         """Fetch ML model metadata and feature lineage."""
@@ -94,11 +125,52 @@ class DataHubContextService:
     async def retrieve_context(
         self, entity_urn: str, *, query: str | None = None
     ) -> list[ContextDocument]:
-        """Retrieve Agent Context Kit documents for grounding."""
+        """Retrieve context via ACK search_documents / grep_documents."""
         return await self._context_kit.retrieve_context(entity_urn, query=query)
 
+    async def search_documents(
+        self, query: str = "*", *, limit: int = 10
+    ) -> list[ContextDocument]:
+        """Search DataHub documents (ACK search_documents)."""
+        return await self._context_kit.search_documents(query, limit=limit)
+
+    async def grep_documents(
+        self, urns: list[str], pattern: str
+    ) -> list[ContextDocument]:
+        """Grep document content (ACK grep_documents)."""
+        return await self._context_kit.grep_documents(urns, pattern)
+
+    async def save_document(
+        self,
+        title: str,
+        content: str,
+        *,
+        related_assets: list[str] | None = None,
+        topics: list[str] | None = None,
+    ) -> ContextDocument:
+        """Write a document via ACK save_document."""
+        return await self._context_kit.save_document(
+            title,
+            content,
+            related_assets=related_assets,
+            topics=topics,
+        )
+
     async def save_context_document(self, doc: ContextDocument) -> ContextDocument:
-        """Write a context document back to DataHub."""
+        """Write a context document back to DataHub (fixture path + ACK save_document)."""
+        if self._client.is_live:
+            try:
+                saved = await self._context_kit.save_document(
+                    doc.title,
+                    doc.body,
+                    related_assets=doc.related_entities,
+                    topics=doc.tags,
+                    urn=doc.urn or None,
+                )
+                if saved.urn:
+                    return saved
+            except Exception:  # noqa: BLE001
+                pass
         return await self._client.save_context_document(doc)
 
     async def add_tags(self, urn: str, tags: list[str]) -> dict[str, Any]:
@@ -135,6 +207,10 @@ class DataHubContextService:
         """Emit a data quality assertion entity."""
         return await self._client.emit_assertion(dataset_urn, assertion_type, description)
 
+    async def add_terms(self, entity_urn: str, term_urns: list[str]) -> dict[str, Any]:
+        """Attach glossary terms (MCP/ACK add_terms)."""
+        return await self._client.add_terms(entity_urn, term_urns)
+
     async def add_glossary_term(self, entity_urn: str, term_urn: str) -> dict[str, Any]:
-        """Attach a glossary term to an entity."""
-        return await self._client.add_glossary_term(entity_urn, term_urn)
+        """Backward-compatible alias for add_terms (single term)."""
+        return await self.add_terms(entity_urn, [term_urn])
