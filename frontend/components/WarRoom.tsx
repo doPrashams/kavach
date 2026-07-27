@@ -49,6 +49,7 @@ export function WarRoom() {
   const [statusLine, setStatusLine] = useState("Ready — pick a scenario and inject chaos");
   const [reportOpen, setReportOpen] = useState(false);
   const [runHistory, setRunHistory] = useState<RunHistoryEntry[]>([]);
+  const [selectedScenario, setSelectedScenario] = useState("schema_drift");
 
   const { events } = useAgentEventStream({
     runId,
@@ -167,11 +168,12 @@ export function WarRoom() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[radial-gradient(circle_at_top,_#0f172a,_#020617)] text-foreground">
-      <div className="sticky top-0 hidden h-screen w-72 shrink-0 lg:block">
+    <div className="flex min-h-screen bg-[radial-gradient(ellipse_at_top,_#e8eef7_0%,_#f4f7fb_42%,_#eef2f7_100%)] text-foreground dark:bg-[radial-gradient(ellipse_at_top,_#1e293b_0%,_#0f172a_45%,_#020617_100%)]">
+      <div className="sticky top-0 hidden h-screen w-72 shrink-0 border-r border-slate-200/80 bg-white/70 backdrop-blur dark:border-slate-800 dark:bg-slate-950/50 lg:block">
         <LeftNav
           runHistory={runHistory}
           activeRunId={runId}
+          selectedScenarioId={selectedScenario}
           onSelectRun={(id) => void openHistoryRun(id)}
           onClearHistory={handleClearHistory}
         />
@@ -276,6 +278,8 @@ export function WarRoom() {
             <div data-tour-id="tour-chaos">
               <ChaosPanel
                 scenarios={scenarios}
+                selectedScenario={selectedScenario}
+                onSelectScenario={setSelectedScenario}
                 disabled={playing}
                 onInject={(nextRunId, scenario) => startAnimatedRun(nextRunId, scenario)}
               />
@@ -300,7 +304,13 @@ export function WarRoom() {
 
           <section className="space-y-4 lg:col-span-5">
             <div data-tour-id="tour-data">
-              <LiveDataPanel scenario={String(activeRun.trigger?.scenario ?? "schema_drift")} />
+              <LiveDataPanel
+                scenario={
+                  runId
+                    ? String(activeRun.trigger?.scenario ?? selectedScenario)
+                    : selectedScenario
+                }
+              />
             </div>
             <div data-tour-id="tour-feed">
               <AgentFeed events={displayEvents} />

@@ -50,6 +50,7 @@ interface LeftNavProps {
   onTourActiveChange?: (active: boolean) => void;
   runHistory?: RunHistoryEntry[];
   activeRunId?: string | null;
+  selectedScenarioId?: string | null;
   onSelectRun?: (runId: string) => void;
   onClearHistory?: () => void;
 }
@@ -58,6 +59,7 @@ export function LeftNav({
   onTourActiveChange,
   runHistory = [],
   activeRunId = null,
+  selectedScenarioId = null,
   onSelectRun,
   onClearHistory,
 }: LeftNavProps) {
@@ -80,6 +82,21 @@ export function LeftNav({
       setHealthError(error instanceof Error ? error.message : "Health check failed");
     }
   }, []);
+
+  useEffect(() => {
+    if (!selectedScenarioId) return;
+    setSection("scenarios");
+    // Wait a tick so the scenarios list is mounted, then scroll + pulse.
+    const timer = window.setTimeout(() => {
+      const el = document.querySelector(
+        `[data-scenario-id="${selectedScenarioId}"]`,
+      );
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }, 50);
+    return () => window.clearTimeout(timer);
+  }, [selectedScenarioId]);
 
   useEffect(() => {
     getSiteGuide().then(setGuide).catch(() => setGuide(null));
@@ -215,47 +232,76 @@ export function LeftNav({
           {section === "scenarios" ? (
             <div className="space-y-3">
               <p className="text-xs text-muted-foreground">
-                Six real failure modes. Pick one in the Chaos panel and inject it — the war room
-                shows it crash, then heal.
+                Selecting a scenario in the Chaos panel highlights its description here.
               </p>
-              {(guide?.scenarios ?? []).map((s) => (
-                <div key={s.id} className="rounded-lg border border-border/40 p-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-medium text-cyan-200">{s.label}</p>
-                    <Badge className={SEVERITY_STYLES[s.severity] ?? "bg-muted/40"}>
-                      {s.severity}
-                    </Badge>
-                    {s.simulated ? <Badge variant="secondary">simulated</Badge> : null}
-                    {s.ml_hold ? (
-                      <Badge className="bg-amber-500/20 text-amber-200">ML hold</Badge>
-                    ) : null}
+              {(guide?.scenarios ?? []).map((s) => {
+                const active = s.id === selectedScenarioId;
+                return (
+                  <div
+                    key={s.id}
+                    data-scenario-id={s.id}
+                    className={`rounded-lg border p-3 transition ${
+                      active
+                        ? "border-sky-400 bg-sky-500/10 shadow-[0_0_0_1px_rgba(56,189,248,0.35)] ring-2 ring-sky-400/40"
+                        : "border-border/40"
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p
+                        className={`font-medium ${active ? "text-sky-700 dark:text-sky-200" : "text-cyan-700 dark:text-cyan-200"}`}
+                      >
+                        {s.label}
+                      </p>
+                      <Badge className={SEVERITY_STYLES[s.severity] ?? "bg-muted/40"}>
+                        {s.severity}
+                      </Badge>
+                      {s.simulated ? <Badge variant="secondary">simulated</Badge> : null}
+                      {s.ml_hold ? (
+                        <Badge className="bg-amber-500/20 text-amber-800 dark:text-amber-200">
+                          ML hold
+                        </Badge>
+                      ) : null}
+                      {active ? (
+                        <Badge className="bg-sky-600/20 text-sky-800 dark:text-sky-200">
+                          selected
+                        </Badge>
+                      ) : null}
+                    </div>
+                    <dl className="mt-2 space-y-1.5 text-xs">
+                      <div>
+                        <dt className="font-semibold text-red-600 dark:text-red-300">
+                          What breaks
+                        </dt>
+                        <dd className="text-muted-foreground">{s.symptom}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-semibold text-orange-600 dark:text-orange-300">
+                          Impact
+                        </dt>
+                        <dd className="text-muted-foreground">{s.impact}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-semibold text-sky-700 dark:text-sky-300">
+                          How Kavach detects
+                        </dt>
+                        <dd className="text-muted-foreground">{s.detects}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-semibold text-emerald-700 dark:text-emerald-300">
+                          Auto-fix
+                        </dt>
+                        <dd className="text-muted-foreground">{s.fix}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-semibold text-muted-foreground">Blast radius</dt>
+                        <dd className="font-mono text-[11px] text-muted-foreground">
+                          {s.affected.join(" → ")}
+                        </dd>
+                      </div>
+                    </dl>
                   </div>
-                  <dl className="mt-2 space-y-1.5 text-xs">
-                    <div>
-                      <dt className="font-semibold text-red-300">What breaks</dt>
-                      <dd className="text-muted-foreground">{s.symptom}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-semibold text-orange-300">Impact</dt>
-                      <dd className="text-muted-foreground">{s.impact}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-semibold text-sky-300">How Kavach detects</dt>
-                      <dd className="text-muted-foreground">{s.detects}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-semibold text-emerald-300">Auto-fix</dt>
-                      <dd className="text-muted-foreground">{s.fix}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-semibold text-muted-foreground">Blast radius</dt>
-                      <dd className="font-mono text-[11px] text-muted-foreground">
-                        {s.affected.join(" → ")}
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : null}
 

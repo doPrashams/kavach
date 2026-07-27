@@ -1,7 +1,8 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { AlertTriangle, Zap } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,21 +12,34 @@ import type { ChaosScenario } from "@/lib/types";
 
 interface ChaosPanelProps {
   scenarios: ChaosScenario[];
+  selectedScenario: string;
+  onSelectScenario: (scenarioId: string) => void;
   onInject: (runId: string, scenario: string) => void;
   disabled?: boolean;
 }
 
-export function ChaosPanel({ scenarios, onInject, disabled = false }: ChaosPanelProps) {
-  const liveScenarios = scenarios.filter((scenario) => !scenario.simulated);
-  const [selected, setSelected] = useState(liveScenarios[0]?.id ?? "schema_drift");
+export function ChaosPanel({
+  scenarios,
+  selectedScenario,
+  onSelectScenario,
+  onInject,
+  disabled = false,
+}: ChaosPanelProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!scenarios.some((s) => s.id === selectedScenario)) {
+      const first = scenarios.find((s) => !s.simulated) ?? scenarios[0];
+      if (first) onSelectScenario(first.id);
+    }
+  }, [scenarios, selectedScenario, onSelectScenario]);
 
   async function handleInject() {
     setLoading(true);
     setError(null);
     try {
-      const result = await injectChaos(selected);
+      const result = await injectChaos(selectedScenario);
       onInject(result.run_id, result.scenario);
     } catch (injectError) {
       setError(injectError instanceof Error ? injectError.message : "Injection failed");
@@ -35,10 +49,10 @@ export function ChaosPanel({ scenarios, onInject, disabled = false }: ChaosPanel
   }
 
   return (
-    <Card>
+    <Card className="border-slate-200/80 bg-white/80 shadow-sm backdrop-blur dark:border-slate-700/60 dark:bg-slate-900/70">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Zap className="size-4 text-amber-400" aria-hidden="true" />
+          <Zap className="size-4 text-amber-500" aria-hidden="true" />
           Chaos panel
         </CardTitle>
       </CardHeader>
@@ -48,13 +62,14 @@ export function ChaosPanel({ scenarios, onInject, disabled = false }: ChaosPanel
           <select
             aria-label="Chaos scenario"
             className="w-full rounded-lg border border-border bg-background px-3 py-2"
-            value={selected}
-            onChange={(event) => setSelected(event.target.value)}
+            value={selectedScenario}
+            onChange={(event) => onSelectScenario(event.target.value)}
             disabled={disabled || loading}
           >
-            {liveScenarios.map((scenario) => (
+            {scenarios.map((scenario) => (
               <option key={scenario.id} value={scenario.id}>
                 {scenario.label}
+                {scenario.simulated ? " (simulated)" : ""}
               </option>
             ))}
           </select>
@@ -76,19 +91,32 @@ export function ChaosPanel({ scenarios, onInject, disabled = false }: ChaosPanel
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Scenario library</p>
           <ul className="space-y-1">
-            {scenarios.map((scenario) => (
-              <li
-                key={scenario.id}
-                className="flex items-center justify-between rounded-md border border-border/40 px-2 py-1 text-sm"
-              >
-                <span>{scenario.label}</span>
-                {scenario.simulated ? (
-                  <Badge variant="secondary">simulated</Badge>
-                ) : (
-                  <Badge>live</Badge>
-                )}
-              </li>
-            ))}
+            {scenarios.map((scenario) => {
+              const active = scenario.id === selectedScenario;
+              return (
+                <motion.li
+                  key={scenario.id}
+                  layout
+                  className={`flex cursor-pointer items-center justify-between rounded-md border px-2 py-1.5 text-sm transition ${
+                    active
+                      ? "border-sky-400/70 bg-sky-500/10 ring-1 ring-sky-400/40"
+                      : "border-border/40 hover:bg-muted/40"
+                  }`}
+                  onClick={() => onSelectScenario(scenario.id)}
+                >
+                  <span className={active ? "font-medium text-sky-700 dark:text-sky-200" : ""}>
+                    {scenario.label}
+                  </span>
+                  {scenario.simulated ? (
+                    <Badge variant="secondary">simulated</Badge>
+                  ) : (
+                    <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+                      live
+                    </Badge>
+                  )}
+                </motion.li>
+              );
+            })}
           </ul>
         </div>
       </CardContent>

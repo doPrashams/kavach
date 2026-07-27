@@ -1,26 +1,21 @@
 "use client";
 
-import {
-  Background,
-  Controls,
-  MarkerType,
-  ReactFlow,
-  type Edge,
-  type Node,
-} from "@xyflow/react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
+  ArrowDown,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   FileText,
   GitPullRequest,
   ListTree,
   Workflow,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { getRealPr } from "@/lib/real-data";
 import { getSpec } from "@/lib/scenarios";
 import type { AgentEvent, FixResponse, RunState } from "@/lib/types";
@@ -60,14 +55,14 @@ export function IncidentReport({
   return (
     <>
       <div
-        className={`fixed inset-0 z-[80] bg-black/50 transition-opacity ${
+        className={`fixed inset-0 z-[80] bg-slate-900/40 backdrop-blur-[2px] transition-opacity ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={onClose}
         aria-hidden="true"
       />
       <aside
-        className={`fixed inset-y-0 right-0 z-[90] flex w-[min(640px,100vw)] flex-col border-l border-border/50 bg-slate-950 shadow-2xl transition-transform duration-300 ${
+        className={`fixed inset-y-0 right-0 z-[90] flex w-[min(640px,100vw)] flex-col border-l border-slate-200 bg-white shadow-2xl transition-transform duration-300 dark:border-slate-700 dark:bg-slate-950 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
         role="dialog"
@@ -75,15 +70,19 @@ export function IncidentReport({
       >
         <header className="flex items-start justify-between gap-3 border-b border-border/40 p-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-cyan-400">Incident report</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-sky-600 dark:text-cyan-400">
+              Incident report
+            </p>
             <h2 className="text-lg font-semibold">{spec.label}</h2>
             <div className="mt-1 flex flex-wrap items-center gap-2">
-              <Badge className="bg-emerald-600/25 text-emerald-200">
+              <Badge className="bg-emerald-600/15 text-emerald-700 dark:bg-emerald-600/25 dark:text-emerald-200">
                 <CheckCircle2 className="mr-1 size-3" /> resolved
               </Badge>
               <Badge variant="secondary">severity {spec.severity}</Badge>
               {spec.ml_hold ? (
-                <Badge className="bg-amber-500/20 text-amber-200">ML deployment held</Badge>
+                <Badge className="bg-amber-500/20 text-amber-800 dark:text-amber-200">
+                  ML deployment held
+                </Badge>
               ) : null}
             </div>
           </div>
@@ -105,7 +104,7 @@ export function IncidentReport({
               onClick={() => setTab(id)}
               className={`flex items-center gap-2 rounded-t-lg px-4 py-2 text-sm transition ${
                 tab === id
-                  ? "border-b-2 border-cyan-400 text-cyan-200"
+                  ? "border-b-2 border-sky-500 text-sky-700 dark:border-cyan-400 dark:text-cyan-200"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -126,7 +125,7 @@ export function IncidentReport({
               isRealPr={isRealPr}
             />
           ) : (
-            <FlowTab spec={spec} runState={runState} />
+            <FlowTab spec={spec} runState={runState} events={events} fix={fix} />
           )}
         </div>
       </aside>
@@ -134,22 +133,50 @@ export function IncidentReport({
   );
 }
 
-function Section({
-  icon: Icon,
+function Collapsible({
   title,
+  icon: Icon,
+  defaultOpen = false,
+  summary,
   children,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
   title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  defaultOpen?: boolean;
+  summary?: string;
   children: React.ReactNode;
 }) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <section className="mb-5">
-      <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
-        <Icon className="size-4 text-cyan-400" aria-hidden="true" />
-        {title}
-      </h3>
-      {children}
+    <section className="mb-3 overflow-hidden rounded-xl border border-border/50 bg-slate-50/80 dark:bg-slate-900/50">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold"
+      >
+        <Icon className="size-4 shrink-0 text-sky-600 dark:text-cyan-400" aria-hidden="true" />
+        <span className="flex-1">{title}</span>
+        {summary && !open ? (
+          <span className="mr-2 max-w-[45%] truncate text-xs font-normal text-muted-foreground">
+            {summary}
+          </span>
+        ) : null}
+        {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+      </button>
+      <AnimatePresence initial={false}>
+        {open ? (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-border/40 px-3 py-3 text-sm">{children}</div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </section>
   );
 }
@@ -178,21 +205,33 @@ function ReportTab({
 
   return (
     <div className="text-sm">
-      <Section icon={AlertTriangle} title="What happened">
-        <p className="text-red-200">{spec.symptom}</p>
+      <Collapsible
+        icon={AlertTriangle}
+        title="What happened"
+        defaultOpen
+        summary={spec.symptom.slice(0, 60)}
+      >
+        <p className="text-red-700 dark:text-red-200">{spec.symptom}</p>
         <p className="mt-1 text-muted-foreground">
-          <span className="font-medium text-orange-300/80">Impact:</span> {spec.impact}
+          <span className="font-medium text-orange-700 dark:text-orange-300">Impact:</span>{" "}
+          {spec.impact}
         </p>
-      </Section>
+      </Collapsible>
 
-      <Section icon={ListTree} title="Timeline of actions">
+      <Collapsible
+        icon={ListTree}
+        title="Timeline of actions"
+        summary={`${events.length || 7} agent steps`}
+      >
         <ol className="relative space-y-3 border-l border-border/50 pl-4">
           {(events.length ? events : []).map((e, i) => (
             <li key={e.id} className="relative">
-              <span className="absolute -left-[21px] top-1 flex size-4 items-center justify-center rounded-full bg-cyan-500/30 text-[10px] font-bold text-cyan-200">
+              <span className="absolute -left-[21px] top-1 flex size-4 items-center justify-center rounded-full bg-sky-500/20 text-[10px] font-bold text-sky-700 dark:text-cyan-200">
                 {i + 1}
               </span>
-              <p className="font-medium text-cyan-200">{AGENT_LABEL[e.agent] ?? e.agent}</p>
+              <p className="font-medium text-sky-800 dark:text-cyan-200">
+                {AGENT_LABEL[e.agent] ?? e.agent}
+              </p>
               <p className="text-muted-foreground">{e.message}</p>
             </li>
           ))}
@@ -200,18 +239,23 @@ function ReportTab({
             <li className="text-muted-foreground">No events recorded for this run.</li>
           ) : null}
         </ol>
-      </Section>
+      </Collapsible>
 
-      <Section icon={AlertTriangle} title="Root cause">
-        <p className="rounded-lg border border-border/40 bg-background/40 p-3 text-muted-foreground">
+      <Collapsible
+        icon={AlertTriangle}
+        title="Root cause"
+        defaultOpen
+        summary={(runState?.root_cause ?? spec.root_cause).slice(0, 50)}
+      >
+        <p className="rounded-lg border border-border/40 bg-white/70 p-3 text-muted-foreground dark:bg-background/40">
           {runState?.root_cause ?? spec.root_cause}
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
           <span className="font-medium">Detected by:</span> {spec.detects}
         </p>
-      </Section>
+      </Collapsible>
 
-      <Section icon={ListTree} title="Blast radius">
+      <Collapsible icon={ListTree} title="Blast radius" summary={`${affected.length} assets`}>
         <div className="flex flex-wrap gap-2">
           {affected.map((a) => (
             <Badge key={a} variant="secondary" className="font-mono text-[11px]">
@@ -219,9 +263,13 @@ function ReportTab({
             </Badge>
           ))}
         </div>
-      </Section>
+      </Collapsible>
 
-      <Section icon={GitPullRequest} title="Fix applied">
+      <Collapsible
+        icon={GitPullRequest}
+        title="Fix applied"
+        summary={fix?.artifacts.pr_title ?? spec.fix.pr_title}
+      >
         <p className="font-medium">{fix?.artifacts.pr_title ?? spec.fix.pr_title}</p>
         <ul className="mt-2 space-y-1 text-xs">
           {Object.keys(fix?.artifacts.files ?? spec.fix.files).map((f) => (
@@ -233,28 +281,37 @@ function ReportTab({
         <pre className="mt-2 max-h-28 overflow-auto rounded-lg bg-muted/30 p-3 text-xs">
           {fix?.artifacts.diff ?? spec.fix.diff}
         </pre>
-      </Section>
+      </Collapsible>
 
-      <Section icon={CheckCircle2} title="Tests run (all passed after fix)">
+      <Collapsible
+        icon={CheckCircle2}
+        title="Tests run"
+        defaultOpen
+        summary={`${spec.tests.length} passed`}
+      >
         <ul className="space-y-1.5">
           {spec.tests.map((t) => (
             <li key={t} className="flex items-center gap-2 text-xs">
-              <CheckCircle2 className="size-3.5 shrink-0 text-emerald-400" aria-hidden="true" />
+              <CheckCircle2 className="size-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
               <span className="font-mono text-muted-foreground">{t}</span>
-              <span className="ml-auto text-emerald-400">PASS</span>
+              <span className="ml-auto text-emerald-600 dark:text-emerald-400">PASS</span>
             </li>
           ))}
         </ul>
-      </Section>
+      </Collapsible>
 
-      <Section icon={GitPullRequest} title="Pull request">
+      <Collapsible
+        icon={GitPullRequest}
+        title="Pull request"
+        summary={isRealPr ? `#${realPr.number} merged` : "artifact"}
+      >
         {isRealPr ? (
-          <div className="space-y-1 rounded-lg border border-purple-500/30 bg-purple-950/20 p-3 text-xs">
+          <div className="space-y-1 rounded-lg border border-violet-300/50 bg-violet-50 p-3 text-xs dark:border-purple-500/30 dark:bg-purple-950/20">
             <p className="font-mono">
               {realPr.repo}#{realPr.number} ·{" "}
-              <span className="text-emerald-300">+{realPr.additions}</span>{" "}
-              <span className="text-red-300">−{realPr.deletions}</span> · {realPr.changed_files}{" "}
-              files
+              <span className="text-emerald-600 dark:text-emerald-300">+{realPr.additions}</span>{" "}
+              <span className="text-red-600 dark:text-red-300">−{realPr.deletions}</span> ·{" "}
+              {realPr.changed_files} files
             </p>
             <p className="text-muted-foreground">
               merged {realPr.merged_at?.slice(0, 10)} · {realPr.merge_commit_sha.slice(0, 7)} · by @
@@ -269,159 +326,151 @@ function ReportTab({
             href={fix.pr_ref}
             target="_blank"
             rel="noreferrer"
-            className="mt-2 inline-block text-sm text-sky-400 hover:underline"
+            className="mt-2 inline-block text-sm text-sky-600 hover:underline dark:text-sky-400"
           >
             {isRealPr ? "Open merged pull request →" : "Open pull requests →"}
           </a>
         ) : null}
-      </Section>
+      </Collapsible>
 
-      <Section icon={FileText} title="Postmortem (written to DataHub)">
-        <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-lg border border-border/40 bg-background/40 p-3 text-xs text-muted-foreground">
+      <Collapsible icon={FileText} title="Postmortem" summary="written to DataHub">
+        <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-lg border border-border/40 bg-white/70 p-3 text-xs text-muted-foreground dark:bg-background/40">
           {runState?.postmortem ?? "Postmortem written to DataHub Context Documents."}
         </pre>
-      </Section>
+      </Collapsible>
     </div>
+  );
+}
+
+function FlowStep({
+  step,
+  tone,
+  title,
+  body,
+  delay,
+}: {
+  step: number;
+  tone: "fail" | "action" | "ok";
+  title: string;
+  body: string;
+  delay: number;
+}) {
+  const toneCls =
+    tone === "fail"
+      ? "border-red-300 bg-red-50 dark:border-red-500/40 dark:bg-red-950/40"
+      : tone === "ok"
+        ? "border-emerald-300 bg-emerald-50 dark:border-emerald-500/40 dark:bg-emerald-950/30"
+        : "border-sky-300 bg-sky-50 dark:border-cyan-500/40 dark:bg-cyan-950/30";
+  const badgeCls =
+    tone === "fail"
+      ? "bg-red-500/15 text-red-700 dark:text-red-200"
+      : tone === "ok"
+        ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-200"
+        : "bg-sky-500/15 text-sky-800 dark:text-cyan-200";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.28 }}
+      className={`rounded-xl border px-3 py-3 ${toneCls}`}
+    >
+      <div className="mb-1 flex items-center gap-2">
+        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${badgeCls}`}>
+          Step {step}
+        </span>
+        <p className="text-sm font-semibold">{title}</p>
+      </div>
+      <p className="text-sm text-muted-foreground">{body}</p>
+    </motion.div>
   );
 }
 
 function FlowTab({
   spec,
   runState,
+  events,
+  fix,
 }: {
   spec: ReturnType<typeof getSpec>;
   runState: RunState | null;
+  events: AgentEvent[];
+  fix: FixResponse | null;
 }) {
-  const { nodes, edges } = useMemo(
-    () => buildIncidentFlow(spec, runState),
-    [spec, runState],
-  );
+  const blast = runState?.blast_radius;
+  const chain = [
+    ...(blast?.datasets ?? []).map((d) => d.name),
+    ...(blast?.dashboards ?? []).map((d) => d.name),
+    ...(blast?.ml_deployments ?? []).map((d) => d.name),
+  ];
+  if (chain.length === 0) {
+    chain.push(...spec.datasets.map((d) => d.name), ...spec.ml_deployments.map((d) => d.name));
+  }
+
+  const steps: Array<{ tone: "fail" | "action" | "ok"; title: string; body: string }> = [
+    {
+      tone: "fail",
+      title: "1. Data breaks",
+      body: `${spec.source_name} — ${spec.symptom}`,
+    },
+    {
+      tone: "action",
+      title: "2. Detect",
+      body: events[0]?.message ?? spec.detects,
+    },
+    {
+      tone: "action",
+      title: "3. Root cause",
+      body: runState?.root_cause ?? spec.root_cause,
+    },
+    {
+      tone: "fail",
+      title: "4. Blast radius (data flow)",
+      body: chain.join("  →  "),
+    },
+    {
+      tone: spec.ml_hold ? "fail" : "action",
+      title: "5. ML Guardian",
+      body: spec.ml_hold
+        ? `HOLD production deployment (risk: ${spec.ml_risk})`
+        : `Monitor only (risk: ${spec.ml_risk})`,
+    },
+    {
+      tone: "action",
+      title: "6. Fix + PR",
+      body: fix?.artifacts.pr_title ?? spec.fix.pr_title,
+    },
+    {
+      tone: "ok",
+      title: "7. Tests pass",
+      body: spec.tests.map((t) => `✓ ${t}`).join(" · "),
+    },
+    {
+      tone: "ok",
+      title: "8. Resolve",
+      body: "Postmortem written to DataHub · owners notified · incident closed",
+    },
+  ];
+
   return (
-    <div className="space-y-3">
-      <p className="text-xs text-muted-foreground">
-        End-to-end flow: where the data broke → how each agent responded → the fix and resolution.
+    <div className="space-y-2">
+      <p className="mb-3 text-xs text-muted-foreground">
+        Read top → bottom: failure → detection → impact → fix → resolve. No graph — just the story.
       </p>
-      <div className="h-[62vh] w-full rounded-lg border border-border/40">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          fitView
-          proOptions={{ hideAttribution: true }}
-          nodesDraggable={false}
-          nodesConnectable={false}
-          elementsSelectable={false}
-          panOnScroll
-          zoomOnScroll
-        >
-          <Background color="#334155" gap={16} />
-          <Controls showInteractive={false} />
-        </ReactFlow>
-      </div>
-      <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <span className="size-2.5 rounded-sm bg-red-500/70" /> failure / impact
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="size-2.5 rounded-sm bg-cyan-500/70" /> agent action
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="size-2.5 rounded-sm bg-emerald-500/70" /> resolution
-        </span>
-      </div>
+      {steps.map((s, i) => (
+        <div key={s.title}>
+          <FlowStep step={i + 1} tone={s.tone} title={s.title} body={s.body} delay={i * 0.06} />
+          {i < steps.length - 1 ? (
+            <div className="flex justify-center py-1 text-muted-foreground">
+              <ArrowDown className="size-4" aria-hidden="true" />
+            </div>
+          ) : null}
+        </div>
+      ))}
+      <p className="mt-4 rounded-lg border border-border/40 bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+        Tip: switch to the <span className="font-medium">Report</span> tab for diffs, PR details, and
+        the full postmortem.
+      </p>
     </div>
   );
-}
-
-type Tone = "fail" | "action" | "ok" | "neutral";
-
-function fnode(
-  id: string,
-  label: string,
-  x: number,
-  y: number,
-  tone: Tone,
-): Node {
-  const palette: Record<Tone, { border: string; bg: string }> = {
-    fail: { border: "rgb(248 113 113)", bg: "rgba(127,29,29,0.55)" },
-    action: { border: "rgb(34 211 238)", bg: "rgba(8,51,68,0.7)" },
-    ok: { border: "rgb(52 211 153)", bg: "rgba(6,78,59,0.55)" },
-    neutral: { border: "rgb(71 85 105)", bg: "rgba(15,23,42,0.85)" },
-  };
-  const p = palette[tone];
-  return {
-    id,
-    position: { x, y },
-    data: { label },
-    style: {
-      border: `1px solid ${p.border}`,
-      background: p.bg,
-      color: "#f8fafc",
-      borderRadius: 10,
-      padding: 8,
-      width: 170,
-      fontSize: 11,
-      whiteSpace: "pre-wrap",
-    },
-  };
-}
-
-function fedge(source: string, target: string, dashed = false): Edge {
-  return {
-    id: `${source}-${target}`,
-    source,
-    target,
-    animated: !dashed,
-    markerEnd: { type: MarkerType.ArrowClosed, color: "#94a3b8" },
-    style: { stroke: "#94a3b8", strokeDasharray: dashed ? "4 4" : undefined },
-  };
-}
-
-function buildIncidentFlow(
-  spec: ReturnType<typeof getSpec>,
-  runState: RunState | null,
-): { nodes: Node[]; edges: Edge[] } {
-  const blast = runState?.blast_radius;
-  const src = blast?.datasets[0]?.name ?? spec.source_name;
-  const mart = blast?.datasets.at(-1)?.name ?? "mart";
-  const ml = blast?.ml_deployments[0]?.name ?? null;
-
-  const holdText = spec.ml_hold ? "HOLD deployment" : `risk: ${spec.ml_risk}`;
-
-  // Lineage lane (top)
-  const nodes: Node[] = [
-    fnode("l_src", `${src}\n⚠ ${spec.symptom.slice(0, 42)}…`, 0, 0, "fail"),
-    fnode("l_mart", mart, 260, 0, "neutral"),
-  ];
-  if (ml) nodes.push(fnode("l_ml", `${ml}\n${holdText}`, 520, 0, spec.ml_hold ? "fail" : "neutral"));
-
-  // Action lane (bottom) — the 7 agents
-  const actions: Array<[string, string, Tone]> = [
-    ["a1", `Sentinel\ndetected anomaly`, "action"],
-    ["a2", `Investigator\nroot cause`, "action"],
-    ["a3", `Impact Analyst\nblast radius`, "action"],
-    ["a4", `ML Guardian\n${holdText}`, spec.ml_hold ? "fail" : "action"],
-    ["a5", `Fixer\ndbt patch + PR`, "action"],
-    ["a6", `Scribe\npostmortem → DataHub`, "action"],
-    ["a7", `Comms\nowners notified · RESOLVED`, "ok"],
-  ];
-  actions.forEach(([id, label, tone], i) => {
-    nodes.push(fnode(id, label, i * 200, 170, tone));
-  });
-
-  const edges: Edge[] = [
-    fedge("l_src", "l_mart"),
-    ...(ml ? [fedge("l_mart", "l_ml")] : []),
-    fedge("a1", "a2"),
-    fedge("a2", "a3"),
-    fedge("a3", "a4"),
-    fedge("a4", "a5"),
-    fedge("a5", "a6"),
-    fedge("a6", "a7"),
-    // cross links: actions → the data entities they touch
-    fedge("a1", "l_src", true),
-    fedge("a3", "l_mart", true),
-    ...(ml ? [fedge("a4", "l_ml", true)] : []),
-  ];
-
-  return { nodes, edges };
 }
