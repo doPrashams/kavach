@@ -1,13 +1,16 @@
 # Kavach
 
 [![CI](https://github.com/doPrashams/kavach/actions/workflows/ci.yml/badge.svg)](https://github.com/doPrashams/kavach/actions/workflows/ci.yml)
-![License](https://img.shields.io/badge/license-MIT-blue)
+![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 
 **Self-healing data platform** — AI agents on DataHub's context graph detect, diagnose, fix,
 and learn from data incidents automatically.
 
 > Your data platform breaks at 2am. Kavach is the war room that resolves it before the
 > dashboard turns red.
+
+**Live demo:** [https://kavach-self.vercel.app](https://kavach-self.vercel.app)  
+**DataHub UI (self-hosted VM):** [http://34.60.67.85:9002](http://34.60.67.85:9002) (may be offline outside demos — use replay mode)
 
 Record a demo GIF per [`docs/VIDEO.md`](docs/VIDEO.md) for Devpost.
 
@@ -111,4 +114,4 @@ Recordings: [`backend/app/events/recordings/`](backend/app/events/recordings/)
 
 ## License
 
-MIT — see [LICENSE](LICENSE) *(add if missing)*.
+Apache 2.0 — see [LICENSE](LICENSE).
