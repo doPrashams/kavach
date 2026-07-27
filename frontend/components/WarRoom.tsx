@@ -50,6 +50,14 @@ export function WarRoom() {
   const [reportOpen, setReportOpen] = useState(false);
   const [runHistory, setRunHistory] = useState<RunHistoryEntry[]>([]);
   const [selectedScenario, setSelectedScenario] = useState("schema_drift");
+  const [domain, setDomain] = useState<"systems" | "humans">("systems");
+
+  const filteredScenarios = useMemo(() => {
+    return scenarios.filter((s) => {
+      const specDomain = s.domain ?? getSpec(s.id).domain;
+      return specDomain === domain;
+    });
+  }, [scenarios, domain]);
 
   const { events } = useAgentEventStream({
     runId,
@@ -122,6 +130,14 @@ export function WarRoom() {
     : playing
       ? "active"
       : "resolved";
+  /** Declared demo mode — judges must never confuse fixtures with live DataHub. */
+  const runMode: "LIVE" | "REPLAY" | "DEMO" = playing
+    ? isDemoApi()
+      ? "REPLAY"
+      : "LIVE"
+    : isDemoApi()
+      ? "DEMO"
+      : "LIVE";
   const mlRecommendation =
     activeRun.findings.find((finding) => finding.toLowerCase().includes("ml guardian")) ??
     (activeRun.ml_hold_recommended ? "hold deployment" : "monitor");
@@ -188,8 +204,48 @@ export function WarRoom() {
               <p className="mt-1 text-sm text-muted-foreground">{statusLine}</p>
             </div>
             <div className="flex items-center gap-2">
-              {isDemoApi() ? <Badge variant="secondary">Demo API · /api/*</Badge> : null}
-              {playing ? <Badge className="bg-amber-500/20 text-amber-200">Live run</Badge> : null}
+              <div
+                className="flex items-center rounded-lg border border-border/60 bg-background/60 p-0.5 text-xs"
+                role="group"
+                aria-label="Domain filter"
+              >
+                <button
+                  type="button"
+                  className={`rounded-md px-2.5 py-1 font-medium transition ${
+                    domain === "systems"
+                      ? "bg-sky-500/20 text-sky-800 dark:text-sky-200"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  aria-pressed={domain === "systems"}
+                  onClick={() => setDomain("systems")}
+                >
+                  Systems
+                </button>
+                <button
+                  type="button"
+                  className={`rounded-md px-2.5 py-1 font-medium transition ${
+                    domain === "humans"
+                      ? "bg-sky-500/20 text-sky-800 dark:text-sky-200"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  aria-pressed={domain === "humans"}
+                  onClick={() => setDomain("humans")}
+                >
+                  Humans
+                </button>
+              </div>
+              <Badge
+                aria-label={`Run mode ${runMode}`}
+                className={
+                  runMode === "LIVE"
+                    ? "bg-emerald-500/20 text-emerald-800 dark:text-emerald-200"
+                    : runMode === "REPLAY"
+                      ? "bg-amber-500/20 text-amber-800 dark:text-amber-200"
+                      : "bg-slate-500/20 text-slate-700 dark:text-slate-200"
+                }
+              >
+                {runMode}
+              </Badge>
               {runId && !playing ? (
                 <Button
                   type="button"
@@ -277,7 +333,7 @@ export function WarRoom() {
           <section className="space-y-4 lg:col-span-3">
             <div data-tour-id="tour-chaos">
               <ChaosPanel
-                scenarios={scenarios}
+                scenarios={filteredScenarios}
                 selectedScenario={selectedScenario}
                 onSelectScenario={setSelectedScenario}
                 disabled={playing}

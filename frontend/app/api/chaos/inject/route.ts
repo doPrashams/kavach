@@ -6,7 +6,7 @@ import {
   buildRunForScenario,
 } from "@/lib/api-demo";
 import { recordAudit } from "@/lib/audit";
-import { getDemoFixture } from "@/lib/fixtures";
+import { SCENARIOS } from "@/lib/scenarios";
 
 /** In-memory run registry for this serverless instance (demo). */
 const RUNS = new Map<string, { scenario: string; created_at: string }>();
@@ -16,11 +16,8 @@ export async function POST(request: Request) {
     scenario?: string;
     seed?: number;
   };
-  const fixture = getDemoFixture();
   const scenario =
-    body.scenario && fixture.scenarios.some((s) => s.id === body.scenario)
-      ? body.scenario
-      : "schema_drift";
+    body.scenario && body.scenario in SCENARIOS ? body.scenario : "schema_drift";
 
   const runId = `run-${scenario}-${Date.now()}`;
   RUNS.set(runId, { scenario, created_at: new Date().toISOString() });

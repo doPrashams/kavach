@@ -4,12 +4,12 @@ export const SITE_INSTRUCTIONS = [
   {
     step: 1,
     title: "Read the Scenarios tab",
-    body: "Open the Scenarios tab (left nav) to see the six real failure modes — what breaks, the business impact, how Kavach detects it, and the auto-fix. Start here so the incident makes sense.",
+    body: "Open the Scenarios tab (left nav) to see the failure modes — what breaks, the business impact, how Kavach detects it, and the auto-fix. Toggle Systems vs Humans in the war-room header. Start here so the incident makes sense.",
   },
   {
     step: 2,
     title: "Pick a scenario in the Chaos panel",
-    body: "Top-left Chaos panel lists all six. Each is a genuine data failure (schema drift, null spike, value corruption, freshness lag, PII exposure, taxi SLA), not a canned animation.",
+    body: "Top-left Chaos panel lists scenarios for the active domain. Each is a genuine data failure (schema drift, null spike, PHI exposure, medication nulls, and more), not a canned animation.",
   },
   {
     step: 3,
@@ -61,7 +61,7 @@ export const TOUR_STEPS = [
     id: "chaos",
     target: "tour-chaos",
     title: "1. Chaos panel — pick a real failure",
-    body: "This is your control panel. Choose one of six genuine data incidents (schema drift, null spike, value corruption, freshness lag, PII exposure, taxi SLA breach) and click Inject Chaos. Each seeds a real, deterministic failure — not a scripted animation.",
+    body: "This is your control panel. Choose a genuine data incident (schema drift, null spike, value corruption, freshness lag, PHI exposure, patient medication nulls, taxi SLA breach) after picking Systems or Humans in the header, then click Inject Chaos. Each seeds a real, deterministic failure — not a scripted animation.",
   },
   {
     id: "incident",
@@ -127,7 +127,7 @@ export const TOUR_STEPS = [
     id: "health",
     target: "tour-health",
     title: "12. Site health & Scenarios tab",
-    body: "The left nav shows live status of every API route and where the site is deployed. Open the Scenarios tab any time for a full description of all six failure modes.",
+    body: "The left nav shows live status of every API route and where the site is deployed. Open the Scenarios tab any time for a full description of every failure mode (Systems and Humans domains).",
   },
 ] as const;
 

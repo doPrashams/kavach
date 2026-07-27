@@ -29,6 +29,11 @@ SCENARIO_NAMES = (
     "value_corruption",
 )
 
+HEALTHCARE_SCENARIO_NAMES = (
+    "phi_exposure",
+    "patient_null_spike",
+)
+
 
 @pytest.fixture(scope="module")
 def built_warehouse() -> None:
@@ -61,11 +66,23 @@ def stub_settings() -> Settings:
     )
 
 
-def test_four_scenarios_registered() -> None:
-    """All four chaos scenarios are registered."""
-    assert list_scenarios() == sorted(SCENARIO_NAMES)
+def test_core_scenarios_registered() -> None:
+    """Core chaos scenarios remain registered."""
+    names = list_scenarios()
     for name in SCENARIO_NAMES:
         assert name in SCENARIOS
+        assert name in names
+
+
+def test_healthcare_scenarios_registered() -> None:
+    """Healthcare domain scenarios are registered (H15)."""
+    for name in HEALTHCARE_SCENARIO_NAMES:
+        assert name in SCENARIOS
+        assert name in list_scenarios()
+        sc = get_scenario(name)
+        assert sc.meta.name == name
+        assert sc.expected_signal().description
+        assert sc.expected_blast_radius()
 
 
 @pytest.mark.parametrize("scenario_name", SCENARIO_NAMES)

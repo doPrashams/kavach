@@ -75,6 +75,7 @@ export interface ChaosScenario {
   id: string;
   label: string;
   simulated?: boolean;
+  domain?: "systems" | "humans";
 }
 
 export interface MttrPoint {

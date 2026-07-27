@@ -120,6 +120,16 @@ class FixtureBackend:
                 name="Demand Forecast",
                 definition="Predicted next-day quantity per product",
             ),
+            "urn:li:glossaryTerm:HIPAA": GlossaryTerm(
+                urn="urn:li:glossaryTerm:HIPAA",
+                name="HIPAA",
+                definition="Protected health information governed by HIPAA",
+            ),
+            "urn:li:glossaryTerm:PII": GlossaryTerm(
+                urn="urn:li:glossaryTerm:PII",
+                name="PII",
+                definition="Personally identifiable information",
+            ),
         }
         WRITEBACK_PATH.parent.mkdir(parents=True, exist_ok=True)
 

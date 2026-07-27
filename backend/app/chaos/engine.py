@@ -76,6 +76,8 @@ class ChaosEngine:
             snapshot_tables = ["raw.orders"]
         elif scenario == "value_corruption":
             snapshot_tables = ["raw.order_items"]
+        elif scenario in ("phi_exposure", "patient_null_spike"):
+            snapshot_tables = ["raw.patients"]
 
         snapshot = self._warehouse.snapshot_tables(snapshot_tables)
         checksum_before = self._warehouse.checksum_tables(snapshot_tables)

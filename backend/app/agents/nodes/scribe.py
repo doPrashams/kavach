@@ -15,6 +15,9 @@ PROMPT = (Path(__file__).resolve().parents[1] / "prompts" / "scribe.md").read_te
     encoding="utf-8"
 )
 TARGET = "main_marts.mart_demand_features"
+PHI_TARGET = "main_marts.mart_patient_analytics"
+HIPAA_TERM = "urn:li:glossaryTerm:HIPAA"
+PII_TERM = "urn:li:glossaryTerm:PII"
 
 
 async def run(state: IncidentState, ctx: AgentContext) -> IncidentState:
@@ -25,8 +28,12 @@ async def run(state: IncidentState, ctx: AgentContext) -> IncidentState:
     )
     raw = await ctx.llm.complete(AgentName.SCRIBE, prompt)
     parsed = json.loads(raw)
-    if state.trigger.get("type") == "chaos":
-        scenario = state.trigger.get("scenario", "incident")
+    scenario = (
+        str(state.trigger.get("scenario"))
+        if state.trigger.get("type") == "chaos" and state.trigger.get("scenario")
+        else None
+    )
+    if scenario:
         postmortem = (
             f"## Incident: {scenario}\n"
             f"Root cause: {state.root_cause}\n"
@@ -37,7 +44,18 @@ async def run(state: IncidentState, ctx: AgentContext) -> IncidentState:
     else:
         postmortem = parsed.get("postmortem", "Incident postmortem")
     state.postmortem = postmortem
-    urn = dataset_urn(TARGET)
+
+    is_phi = scenario == "phi_exposure"
+    target = PHI_TARGET if is_phi else TARGET
+    urn = dataset_urn(target)
+
+    tags = [
+        "postmortem",
+        "incident",
+        *([scenario] if scenario else []),
+    ]
+    if is_phi:
+        tags.extend(["PII", "HIPAA"])
 
     doc = await ctx.datahub.save_context_document(
         ContextDocument(
@@ -45,23 +63,25 @@ async def run(state: IncidentState, ctx: AgentContext) -> IncidentState:
             title=f"Postmortem {state.run_id[:8]}",
             body=postmortem,
             related_entities=[urn],
-            tags=[
-                "postmortem",
-                "incident",
-                *(
-                    [str(state.trigger.get("scenario"))]
-                    if state.trigger.get("scenario")
-                    else []
-                ),
-            ],
+            tags=tags,
         )
     )
     STORE.index_document(
         doc,
-        scenario=str(state.trigger.get("scenario")) if state.trigger.get("scenario") else None,
+        scenario=scenario,
     )
-    await ctx.datahub.add_tags(urn, ["incident-resolved"])
-    await ctx.datahub.update_description(urn, "Demand features mart — post-incident")
+    resolve_tags = ["incident-resolved"]
+    if is_phi:
+        resolve_tags.extend(["PII", "HIPAA"])
+    await ctx.datahub.add_tags(urn, resolve_tags)
+    if is_phi:
+        await ctx.datahub.add_glossary_term(urn, HIPAA_TERM)
+        await ctx.datahub.add_glossary_term(urn, PII_TERM)
+        await ctx.datahub.update_description(
+            urn, "Patient analytics mart — post-incident (PHI masked, HIPAA/PII tagged)"
+        )
+    else:
+        await ctx.datahub.update_description(urn, "Demand features mart — post-incident")
     if state.incident_urn:
         await ctx.datahub.resolve_incident(state.incident_urn)
 

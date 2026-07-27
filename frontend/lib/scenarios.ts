@@ -15,6 +15,8 @@ export interface ScenarioSpec {
   id: string;
   label: string;
   simulated?: boolean;
+  /** Domain axis: retail/ops systems vs healthcare humans. */
+  domain: "systems" | "humans";
   severity: string;
   ml_risk: string;
   ml_hold: boolean;
@@ -51,6 +53,7 @@ export const SCENARIOS: Record<string, ScenarioSpec> = {
   schema_drift: {
     id: "schema_drift",
     label: "Schema drift (supplier qty rename)",
+    domain: "systems",
     severity: "high",
     ml_risk: "critical",
     ml_hold: true,
@@ -98,6 +101,7 @@ export const SCENARIOS: Record<string, ScenarioSpec> = {
   null_spike: {
     id: "null_spike",
     label: "Null spike on orders.customer_id",
+    domain: "systems",
     severity: "high",
     ml_risk: "low",
     ml_hold: false,
@@ -145,6 +149,7 @@ export const SCENARIOS: Record<string, ScenarioSpec> = {
   value_corruption: {
     id: "value_corruption",
     label: "Value corruption in order_items.unit_price",
+    domain: "systems",
     severity: "critical",
     ml_risk: "critical",
     ml_hold: true,
@@ -193,6 +198,7 @@ export const SCENARIOS: Record<string, ScenarioSpec> = {
   freshness_lag: {
     id: "freshness_lag",
     label: "Freshness lag on upstream orders feed",
+    domain: "systems",
     severity: "medium",
     ml_risk: "medium",
     ml_hold: false,
@@ -241,6 +247,7 @@ export const SCENARIOS: Record<string, ScenarioSpec> = {
     id: "healthcare_pii",
     label: "Healthcare PII exposure (simulated)",
     simulated: true,
+    domain: "humans",
     severity: "critical",
     ml_risk: "n/a",
     ml_hold: false,
@@ -287,6 +294,7 @@ export const SCENARIOS: Record<string, ScenarioSpec> = {
     id: "nyc_taxi_freshness",
     label: "NYC taxi freshness SLA breach (simulated)",
     simulated: true,
+    domain: "systems",
     severity: "high",
     ml_risk: "medium",
     ml_hold: false,
@@ -328,6 +336,115 @@ export const SCENARIOS: Record<string, ScenarioSpec> = {
     },
     mttr: [2.8, 1.9, 0.8],
   },
+  phi_exposure: {
+    id: "phi_exposure",
+    label: "PHI exposure into analytics mart",
+    domain: "humans",
+    severity: "critical",
+    ml_risk: "n/a",
+    ml_hold: false,
+    symptom:
+      "PHI scanner flags patient_ssn and diagnosis_code landing unmasked in mart_patient_analytics — readable by all analysts.",
+    impact:
+      "HIPAA violation — protected health information leaked into a broader analytics mart; access must be revoked and columns masked.",
+    detects:
+      "PII/PHI classifier tags unmasked patient_ssn flowing from raw.patients into a downstream mart.",
+    root_cause:
+      "Staging transform selected PHI columns into mart_patient_analytics without masking or glossary governance tags.",
+    tests: [
+      "phi_masked(mart_patient_analytics.patient_ssn)",
+      "glossary_tagged(patient_ssn, term=HIPAA)",
+      "glossary_tagged(patient_ssn, term=PII)",
+      "no_plaintext_phi(mart_patient_analytics)",
+    ],
+    source_name: "raw.patients",
+    datasets: [
+      { name: "raw.patients", via: "patient_ssn" },
+      { name: "main_staging.stg_patients", via: "patient_ssn" },
+      { name: "main_marts.mart_patient_analytics", via: "patient_ssn" },
+    ],
+    dashboards: ["Clinical Ops Dashboard"],
+    ml_models: [],
+    ml_deployments: [],
+    agents: {
+      sentinel: "PHI classifier flagged unmasked patient_ssn in mart_patient_analytics",
+      investigator: "Lineage: patient_ssn flows from raw.patients through stg_patients without masking",
+      impact_analyst: "Exposure scope: 1 mart + Clinical Ops Dashboard; regulatory (HIPAA) risk",
+      ml_guardian: "n/a: no ML deployment in this path",
+      fixer: "Generated masking transform + HIPAA/PII glossary tags + PR",
+      scribe: "Postmortem + HIPAA glossary terms + PII tags written to DataHub",
+      comms: "Security + compliance owners notified — PHI access restricted",
+    },
+    fix: {
+      branch: "kavach/fix-phi_exposure",
+      pr_title: "fix(dbt): mask PHI columns + tag HIPAA/PII glossary terms",
+      pr_body:
+        "Hash/mask patient_ssn in mart_patient_analytics and attach HIPAA + PII glossary terms in DataHub.",
+      files: {
+        "models/marts/mart_patient_analytics.sql":
+          "select sha256(patient_ssn) as patient_ssn_hash, /* ...other cols... */ from {{ ref('stg_patients') }}",
+        "models/schema.yml":
+          "- name: patient_ssn_hash\n  meta:\n    glossary: [HIPAA, PII]",
+      },
+      diff: "+sha256(patient_ssn) as patient_ssn_hash\n+glossary: [HIPAA, PII]",
+      pr_url: DEMO_REPO_PULLS,
+    },
+    mttr: [3.2, 2.1, 0.9],
+  },
+  patient_null_spike: {
+    id: "patient_null_spike",
+    label: "Null spike on patients.medication_code",
+    domain: "humans",
+    severity: "high",
+    ml_risk: "low",
+    ml_hold: false,
+    symptom:
+      "medication_code null rate jumps 0.4% → 41%; clinical joins drop rows and mart_medication_adherence plummets.",
+    impact:
+      "Care-ops dashboards under-count active regimens; clinicians see a phantom adherence cliff.",
+    detects:
+      "Null-rate assertion on stg_patients.medication_code breaches the 5% threshold.",
+    root_cause:
+      "Burst of NULLs in raw.patients.medication_code after an upstream EHR feed timeout, skewing adherence joins.",
+    tests: [
+      "not_null(stg_patients.medication_code)",
+      "null_rate(medication_code) < 5%",
+      "relationships(patients.medication_code → medications.code)",
+    ],
+    source_name: "raw.patients",
+    datasets: [
+      { name: "raw.patients", via: "medication_code" },
+      { name: "main_staging.stg_patients", via: "medication_code" },
+      { name: "main_marts.mart_medication_adherence", via: "adherence_rate" },
+    ],
+    dashboards: ["Clinical Ops Dashboard"],
+    ml_models: [],
+    ml_deployments: [],
+    agents: {
+      sentinel: "Null-rate assertion tripped: patients.medication_code null rate 41% (>5%)",
+      investigator: "Query history shows upstream EHR 504s during ingestion window",
+      impact_analyst: "Blast radius: stg_patients → mart_medication_adherence → Clinical Ops Dashboard",
+      ml_guardian: "low: no ML feature depends on medication_code",
+      fixer: "Generated dbt guard: filter/flag null medication_code + not_null test",
+      scribe: "Postmortem + tags written; incident resolved in DataHub",
+      comms: "Clinical ops owners notified — patient_null_spike contained",
+    },
+    fix: {
+      branch: "kavach/fix-patient_null_spike",
+      pr_title: "fix(dbt): guard null medication_code in stg_patients",
+      pr_body:
+        "Filter/flag null medication_code and add not_null test on mart_medication_adherence keys.",
+      files: {
+        "models/staging/stg_patients.sql":
+          "select * from {{ source('raw','patients') }} where medication_code is not null",
+        "models/tests/assert_no_null_medication_code.sql":
+          "select 1 from {{ ref('stg_patients') }} where medication_code is null",
+      },
+      diff: "+where medication_code is not null",
+      pr_url: DEMO_REPO_PULLS,
+    },
+    mttr: [2.7, 1.8, 0.7],
+  },
 };
 
 export function listScenarioSpecs(): ChaosScenario[] {
@@ -335,6 +452,7 @@ export function listScenarioSpecs(): ChaosScenario[] {
     id: s.id,
     label: s.label,
     simulated: s.simulated,
+    domain: s.domain,
   }));
 }
 
@@ -342,6 +460,7 @@ export interface ScenarioDetail {
   id: string;
   label: string;
   simulated: boolean;
+  domain: "systems" | "humans";
   severity: string;
   ml_risk: string;
   ml_hold: boolean;
@@ -358,6 +477,7 @@ export function listScenarioDetails(): ScenarioDetail[] {
     id: s.id,
     label: s.label,
     simulated: Boolean(s.simulated),
+    domain: s.domain,
     severity: s.severity,
     ml_risk: s.ml_risk,
     ml_hold: s.ml_hold,

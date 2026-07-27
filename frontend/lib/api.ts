@@ -197,6 +197,7 @@ export interface ScenarioDetail {
   id: string;
   label: string;
   simulated: boolean;
+  domain?: "systems" | "humans";
   severity: string;
   ml_risk: string;
   ml_hold: boolean;

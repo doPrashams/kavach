@@ -188,11 +188,13 @@
     }
   ],
   "scenarios": [
-    { "id": "schema_drift", "label": "Schema drift (supplier qty rename)" },
-    { "id": "null_spike", "label": "Null spike on mart features" },
-    { "id": "value_corruption", "label": "Value corruption in staging" },
-    { "id": "freshness_lag", "label": "Freshness lag on upstream feed" },
-    { "id": "healthcare_pii", "label": "Healthcare PII exposure (simulated)", "simulated": true },
-    { "id": "nyc_taxi_freshness", "label": "NYC taxi freshness SLA breach (simulated)", "simulated": true }
+    { "id": "schema_drift", "label": "Schema drift (supplier qty rename)", "domain": "systems" },
+    { "id": "null_spike", "label": "Null spike on mart features", "domain": "systems" },
+    { "id": "value_corruption", "label": "Value corruption in staging", "domain": "systems" },
+    { "id": "freshness_lag", "label": "Freshness lag on upstream feed", "domain": "systems" },
+    { "id": "healthcare_pii", "label": "Healthcare PII exposure (simulated)", "simulated": true, "domain": "humans" },
+    { "id": "nyc_taxi_freshness", "label": "NYC taxi freshness SLA breach (simulated)", "simulated": true, "domain": "systems" },
+    { "id": "phi_exposure", "label": "PHI exposure into analytics mart", "domain": "humans" },
+    { "id": "patient_null_spike", "label": "Null spike on patients.medication_code", "domain": "humans" }
   ]
 }
