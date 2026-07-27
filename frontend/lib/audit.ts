@@ -128,3 +128,19 @@ export async function listAudit(limit = 100): Promise<{
   }
   return { durable: false, entries: memStore().slice(0, limit) };
 }
+
+export async function clearAudit(): Promise<{ durable: boolean; cleared: number }> {
+  try {
+    if (hasRedis()) {
+      const before = (await redis(["LLEN", KEY])) as number;
+      await redis(["DEL", KEY]);
+      return { durable: true, cleared: Number(before) || 0 };
+    }
+  } catch {
+    // fall through
+  }
+  const store = memStore();
+  const cleared = store.length;
+  store.length = 0;
+  return { durable: false, cleared };
+}

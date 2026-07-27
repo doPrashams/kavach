@@ -27,6 +27,13 @@ import {
   listScenarios,
 } from "@/lib/api";
 import { getDemoFixture } from "@/lib/fixtures";
+import {
+  clearRunHistory,
+  loadRunHistory,
+  pushRunHistory,
+  type RunHistoryEntry,
+} from "@/lib/run-history";
+import { getSpec } from "@/lib/scenarios";
 import { useAgentEventStream } from "@/lib/sse";
 import type { FixResponse, MttrPoint, RunState } from "@/lib/types";
 
@@ -41,6 +48,7 @@ export function WarRoom() {
   const [mttrTrend, setMttrTrend] = useState<MttrPoint[]>(fixture.mttrTrend);
   const [statusLine, setStatusLine] = useState("Ready — pick a scenario and inject chaos");
   const [reportOpen, setReportOpen] = useState(false);
+  const [runHistory, setRunHistory] = useState<RunHistoryEntry[]>([]);
 
   const { events } = useAgentEventStream({
     runId,
@@ -48,16 +56,24 @@ export function WarRoom() {
     replayIndex: scrubIndex,
   });
 
-  const refreshRun = useCallback(async (nextRunId: string) => {
-    const run = await getRun(nextRunId);
-    const [fixResponse, trend] = await Promise.all([
-      getFix(nextRunId),
-      getMttrTrend(run.trigger?.scenario as string | undefined),
-    ]);
-    setRunState(run);
-    setFix(fixResponse);
-    setMttrTrend(trend.length ? trend : fixture.mttrTrend);
-  }, [fixture.mttrTrend]);
+  useEffect(() => {
+    setRunHistory(loadRunHistory());
+  }, []);
+
+  const refreshRun = useCallback(
+    async (nextRunId: string) => {
+      const run = await getRun(nextRunId);
+      const [fixResponse, trend] = await Promise.all([
+        getFix(nextRunId),
+        getMttrTrend(run.trigger?.scenario as string | undefined),
+      ]);
+      setRunState(run);
+      setFix(fixResponse);
+      setMttrTrend(trend.length ? trend : fixture.mttrTrend);
+      return run;
+    },
+    [fixture.mttrTrend],
+  );
 
   useEffect(() => {
     listScenarios().then(setScenarios).catch(() => setScenarios(fixture.scenarios));
@@ -70,7 +86,19 @@ export function WarRoom() {
     if (scrubIndex >= total - 1) {
       setPlaying(false);
       setStatusLine("Incident resolved — explore the cards or inject again");
-      void refreshRun(runId);
+      void refreshRun(runId).then((run) => {
+        const scenario = String(run.trigger?.scenario ?? "schema_drift");
+        const spec = getSpec(scenario);
+        setRunHistory(
+          pushRunHistory({
+            run_id: runId,
+            scenario,
+            label: spec.label,
+            severity: run.severity ?? spec.severity,
+            status: "resolved",
+          }),
+        );
+      });
       return;
     }
     const timer = setTimeout(() => setScrubIndex((value) => (value ?? 0) + 1), 450);
@@ -98,17 +126,55 @@ export function WarRoom() {
     (activeRun.ml_hold_recommended ? "hold deployment" : "monitor");
 
   function startAnimatedRun(nextRunId: string, scenario: string) {
+    const spec = getSpec(scenario);
     setRunId(nextRunId);
     setScrubIndex(0);
     setPlaying(true);
+    setReportOpen(false);
     setStatusLine(`Injected ${scenario} — agents responding…`);
+    setRunHistory(
+      pushRunHistory({
+        run_id: nextRunId,
+        scenario,
+        label: spec.label,
+        severity: spec.severity,
+        status: "active",
+      }),
+    );
     void refreshRun(nextRunId);
+  }
+
+  async function openHistoryRun(nextRunId: string) {
+    setRunId(nextRunId);
+    setPlaying(false);
+    const eventsForRun = getFixtureEvents(nextRunId);
+    setScrubIndex(Math.max(0, eventsForRun.length - 1));
+    setStatusLine(`Loaded past run ${nextRunId}`);
+    await refreshRun(nextRunId);
+    setReportOpen(true);
+  }
+
+  function handleClearHistory() {
+    clearRunHistory();
+    setRunHistory([]);
+    setRunId(null);
+    setRunState(null);
+    setFix(null);
+    setPlaying(false);
+    setScrubIndex(undefined);
+    setReportOpen(false);
+    setStatusLine("History cleared — ready for a clean retest");
   }
 
   return (
     <div className="flex min-h-screen bg-[radial-gradient(circle_at_top,_#0f172a,_#020617)] text-foreground">
       <div className="sticky top-0 hidden h-screen w-72 shrink-0 lg:block">
-        <LeftNav />
+        <LeftNav
+          runHistory={runHistory}
+          activeRunId={runId}
+          onSelectRun={(id) => void openHistoryRun(id)}
+          onClearHistory={handleClearHistory}
+        />
       </div>
 
       <div className="min-w-0 flex-1">
@@ -199,10 +265,9 @@ export function WarRoom() {
           </div>
         ) : null}
 
-        {/* Mobile guide entry */}
         <div className="border-b border-border/30 px-4 py-2 lg:hidden">
           <p className="text-xs text-muted-foreground">
-            Tip: on desktop, use the left guide for instructions, tour, and site health.
+            Tip: on desktop, use the left guide for instructions, tour, history, and site health.
           </p>
         </div>
 

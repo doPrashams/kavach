@@ -114,6 +114,10 @@ export async function getAuditLog(limit = 100): Promise<AuditLog> {
   return fetchJson<AuditLog>(`/api/admin/audit?limit=${limit}`);
 }
 
+export async function clearAuditLog(): Promise<{ ok: boolean; cleared: number }> {
+  return fetchJson("/api/admin/audit", { method: "DELETE" });
+}
+
 export async function getSiteGuide(): Promise<SiteGuide> {
   return fetchJson<SiteGuide>("/api/site/guide");
 }

@@ -60,14 +60,14 @@ export function IncidentReport({
   return (
     <>
       <div
-        className={`fixed inset-0 z-40 bg-black/50 transition-opacity ${
+        className={`fixed inset-0 z-[80] bg-black/50 transition-opacity ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={onClose}
         aria-hidden="true"
       />
       <aside
-        className={`fixed inset-y-0 right-0 z-50 flex w-[min(640px,100vw)] flex-col border-l border-border/50 bg-slate-950 shadow-2xl transition-transform duration-300 ${
+        className={`fixed inset-y-0 right-0 z-[90] flex w-[min(640px,100vw)] flex-col border-l border-border/50 bg-slate-950 shadow-2xl transition-transform duration-300 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
         role="dialog"

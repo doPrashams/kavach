@@ -5,18 +5,22 @@ import {
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
+  History,
   Info,
   Layers,
   Play,
   ScrollText,
+  Trash2,
   User,
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  clearAuditLog,
   getAuditLog,
   getSiteGuide,
   getSiteHealth,
@@ -24,9 +28,17 @@ import {
   type SiteGuide,
   type SiteHealth,
 } from "@/lib/api";
+import type { RunHistoryEntry } from "@/lib/run-history";
 import { TOUR_STEPS } from "@/lib/site-content";
 
-type NavSection = "howto" | "scenarios" | "about" | "stack" | "health" | "activity";
+type NavSection =
+  | "howto"
+  | "scenarios"
+  | "history"
+  | "about"
+  | "stack"
+  | "health"
+  | "activity";
 
 const SEVERITY_STYLES: Record<string, string> = {
   critical: "bg-red-500/20 text-red-200",
@@ -36,9 +48,19 @@ const SEVERITY_STYLES: Record<string, string> = {
 
 interface LeftNavProps {
   onTourActiveChange?: (active: boolean) => void;
+  runHistory?: RunHistoryEntry[];
+  activeRunId?: string | null;
+  onSelectRun?: (runId: string) => void;
+  onClearHistory?: () => void;
 }
 
-export function LeftNav({ onTourActiveChange }: LeftNavProps) {
+export function LeftNav({
+  onTourActiveChange,
+  runHistory = [],
+  activeRunId = null,
+  onSelectRun,
+  onClearHistory,
+}: LeftNavProps) {
   const [section, setSection] = useState<NavSection>("howto");
   const [guide, setGuide] = useState<SiteGuide | null>(null);
   const [health, setHealth] = useState<SiteHealth | null>(null);
@@ -47,6 +69,7 @@ export function LeftNav({ onTourActiveChange }: LeftNavProps) {
   const [auditError, setAuditError] = useState<string | null>(null);
   const [tourOpen, setTourOpen] = useState(false);
   const [tourIndex, setTourIndex] = useState(0);
+  const [clearing, setClearing] = useState(false);
 
   const refreshHealth = useCallback(async () => {
     try {
@@ -91,6 +114,24 @@ export function LeftNav({ onTourActiveChange }: LeftNavProps) {
     }
   }, [tourIndex, tourOpen]);
 
+  async function handleClearAll() {
+    if (
+      !window.confirm(
+        "Clear all incident run history and admin audit logs? This cannot be undone.",
+      )
+    ) {
+      return;
+    }
+    setClearing(true);
+    try {
+      onClearHistory?.();
+      await clearAuditLog().catch(() => null);
+      await refreshAudit();
+    } finally {
+      setClearing(false);
+    }
+  }
+
   const healthBadge =
     health?.status === "ok" ? (
       <Badge className="bg-emerald-600/30 text-emerald-300">Healthy</Badge>
@@ -117,6 +158,7 @@ export function LeftNav({ onTourActiveChange }: LeftNavProps) {
             [
               ["howto", "How to use", Info],
               ["scenarios", "Scenarios", AlertTriangle],
+              ["history", "Run history", History],
               ["about", "About me", User],
               ["stack", "Tech stack", Layers],
               ["health", "Site health", Activity],
@@ -135,6 +177,11 @@ export function LeftNav({ onTourActiveChange }: LeftNavProps) {
             >
               <Icon className="size-4" aria-hidden="true" />
               {label}
+              {id === "history" && runHistory.length > 0 ? (
+                <Badge variant="secondary" className="ml-auto text-[10px]">
+                  {runHistory.length}
+                </Badge>
+              ) : null}
             </button>
           ))}
           <Button
@@ -212,6 +259,74 @@ export function LeftNav({ onTourActiveChange }: LeftNavProps) {
             </div>
           ) : null}
 
+          {section === "history" ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs text-muted-foreground">
+                  Click a run to open its incident report.
+                </p>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  disabled={clearing || (runHistory.length === 0 && !(audit?.count))}
+                  onClick={() => void handleClearAll()}
+                >
+                  <Trash2 className="mr-1 size-3.5" aria-hidden="true" />
+                  Clear all
+                </Button>
+              </div>
+              {runHistory.length === 0 ? (
+                <p className="text-muted-foreground">
+                  No runs yet — inject chaos to create an incident report.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {runHistory.map((entry) => {
+                    const selected = entry.run_id === activeRunId;
+                    return (
+                      <li key={entry.run_id}>
+                        <button
+                          type="button"
+                          onClick={() => onSelectRun?.(entry.run_id)}
+                          className={`w-full rounded-lg border px-3 py-2 text-left transition ${
+                            selected
+                              ? "border-cyan-400/50 bg-cyan-500/10"
+                              : "border-border/40 hover:border-cyan-400/30 hover:bg-muted/30"
+                          }`}
+                        >
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium text-cyan-200">{entry.label}</span>
+                            <Badge
+                              className={SEVERITY_STYLES[entry.severity] ?? "bg-muted/40"}
+                            >
+                              {entry.severity}
+                            </Badge>
+                            <Badge
+                              className={
+                                entry.status === "resolved"
+                                  ? "bg-emerald-600/25 text-emerald-200"
+                                  : "bg-red-500/20 text-red-200"
+                              }
+                            >
+                              {entry.status}
+                            </Badge>
+                          </div>
+                          <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+                            {entry.run_id}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {new Date(entry.ts).toLocaleString()}
+                          </p>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          ) : null}
+
           {section === "about" && guide ? (
             <div className="space-y-3 rounded-lg border border-border/40 p-3">
               <p className="text-lg font-semibold">{guide.about.name}</p>
@@ -279,7 +394,12 @@ export function LeftNav({ onTourActiveChange }: LeftNavProps) {
                       </li>
                     ))}
                   </ul>
-                  <Button type="button" variant="secondary" size="sm" onClick={() => void refreshHealth()}>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => void refreshHealth()}
+                  >
                     Refresh health
                   </Button>
                 </>
@@ -295,9 +415,25 @@ export function LeftNav({ onTourActiveChange }: LeftNavProps) {
                 <p className="text-xs text-muted-foreground">
                   Admin audit — who ran what, when & from where
                 </p>
-                <Button type="button" variant="secondary" size="sm" onClick={() => void refreshAudit()}>
-                  Refresh
-                </Button>
+                <div className="flex gap-1">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => void refreshAudit()}
+                  >
+                    Refresh
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    disabled={clearing}
+                    onClick={() => void handleClearAll()}
+                  >
+                    <Trash2 className="size-3.5" aria-hidden="true" />
+                  </Button>
+                </div>
               </div>
               {audit ? (
                 <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -327,7 +463,9 @@ export function LeftNav({ onTourActiveChange }: LeftNavProps) {
                       </span>
                     </div>
                     <div className="mt-0.5 text-muted-foreground">
-                      {e.scenario ? <span className="text-foreground/80">{e.scenario}</span> : null}
+                      {e.scenario ? (
+                        <span className="text-foreground/80">{e.scenario}</span>
+                      ) : null}
                       {e.ip ? <span> · {e.ip}</span> : null}
                       {e.city || e.country ? (
                         <span>
@@ -381,11 +519,18 @@ function ProductTour({
   onNext: () => void;
 }) {
   const step = TOUR_STEPS[index];
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const el = document.querySelector(`[data-tour-id="${step.target}"]`);
     if (el) {
       el.classList.add(
+        "relative",
+        "z-[9998]",
         "ring-2",
         "ring-cyan-400",
         "ring-offset-4",
@@ -396,6 +541,8 @@ function ProductTour({
       el.scrollIntoView({ behavior: "smooth", block: "center" });
       return () => {
         el.classList.remove(
+          "relative",
+          "z-[9998]",
           "ring-2",
           "ring-cyan-400",
           "ring-offset-4",
@@ -407,11 +554,12 @@ function ProductTour({
     }
   }, [step.target]);
 
-  return (
-    <div className="pointer-events-none fixed inset-0 z-50">
-      {/* No dark backdrop — the spotlight ring stays fully visible on the target. */}
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="pointer-events-none fixed inset-0 z-[9999]">
       <div
-        className="pointer-events-auto fixed bottom-6 left-1/2 w-[min(92vw,440px)] -translate-x-1/2 rounded-xl border border-cyan-400/50 bg-slate-950/95 p-4 shadow-[0_0_40px_rgba(34,211,238,0.25)] backdrop-blur"
+        className="pointer-events-auto fixed bottom-6 left-1/2 z-[9999] w-[min(92vw,440px)] -translate-x-1/2 rounded-xl border border-cyan-400/50 bg-slate-950 p-4 shadow-[0_0_40px_rgba(34,211,238,0.35)]"
         role="dialog"
         aria-label="Site tour"
       >
@@ -437,6 +585,7 @@ function ProductTour({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
