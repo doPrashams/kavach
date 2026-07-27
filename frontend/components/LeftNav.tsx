@@ -14,11 +14,18 @@ import {
   User,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  getAdminToken,
+  isAdminUnlocked,
+  lockAdminSession,
+  unlockAdminSession,
+  verifyAdminCode,
+} from "@/lib/admin-gate";
 import {
   clearAuditLog,
   getAuditLog,
@@ -72,6 +79,10 @@ export function LeftNav({
   const [tourOpen, setTourOpen] = useState(false);
   const [tourIndex, setTourIndex] = useState(0);
   const [clearing, setClearing] = useState(false);
+  const [adminUnlocked, setAdminUnlocked] = useState(false);
+  const [adminCode, setAdminCode] = useState("");
+  const [adminGateError, setAdminGateError] = useState<string | null>(null);
+  const [adminChecking, setAdminChecking] = useState(false);
 
   const refreshHealth = useCallback(async () => {
     try {
@@ -106,6 +117,10 @@ export function LeftNav({
   }, [refreshHealth]);
 
   const refreshAudit = useCallback(async () => {
+    if (!getAdminToken()) {
+      setAudit(null);
+      return;
+    }
     try {
       setAuditError(null);
       setAudit(await getAuditLog(100));
@@ -115,8 +130,38 @@ export function LeftNav({
   }, []);
 
   useEffect(() => {
-    if (section === "activity") void refreshAudit();
-  }, [section, refreshAudit]);
+    setAdminUnlocked(isAdminUnlocked());
+  }, []);
+
+  useEffect(() => {
+    if (section === "activity" && adminUnlocked) void refreshAudit();
+  }, [section, refreshAudit, adminUnlocked]);
+
+  async function handleAdminUnlock(event: FormEvent) {
+    event.preventDefault();
+    setAdminChecking(true);
+    setAdminGateError(null);
+    try {
+      const ok = await verifyAdminCode(adminCode);
+      if (!ok) {
+        setAdminGateError("Incorrect code");
+        return;
+      }
+      unlockAdminSession(adminCode);
+      setAdminUnlocked(true);
+      setAdminCode("");
+      await refreshAudit();
+    } finally {
+      setAdminChecking(false);
+    }
+  }
+
+  function handleAdminLock() {
+    lockAdminSession();
+    setAdminUnlocked(false);
+    setAudit(null);
+    setAuditError(null);
+  }
 
   useEffect(() => {
     onTourActiveChange?.(tourOpen);
@@ -457,6 +502,33 @@ export function LeftNav({
 
           {section === "activity" ? (
             <div className="space-y-3">
+              {!adminUnlocked ? (
+                <form className="space-y-3" onSubmit={(e) => void handleAdminUnlock(e)}>
+                  <p className="text-xs text-muted-foreground">
+                    Admin only — enter your access code to view who ran what.
+                  </p>
+                  <label className="block space-y-1 text-sm">
+                    <span className="text-muted-foreground">Admin code</span>
+                    <input
+                      type="password"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2"
+                      value={adminCode}
+                      onChange={(e) => setAdminCode(e.target.value)}
+                      placeholder="••••"
+                      aria-label="Admin code"
+                    />
+                  </label>
+                  {adminGateError ? (
+                    <p className="text-xs text-destructive">{adminGateError}</p>
+                  ) : null}
+                  <Button type="submit" size="sm" className="w-full" disabled={adminChecking}>
+                    {adminChecking ? "Checking…" : "Unlock activity log"}
+                  </Button>
+                </form>
+              ) : (
+                <>
               <div className="flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">
                   Admin audit — who ran what, when & from where
@@ -469,6 +541,14 @@ export function LeftNav({
                     onClick={() => void refreshAudit()}
                   >
                     Refresh
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleAdminLock}
+                  >
+                    Lock
                   </Button>
                   <Button
                     type="button"
@@ -528,6 +608,8 @@ export function LeftNav({
                   </li>
                 ))}
               </ul>
+                </>
+              )}
             </div>
           ) : null}
         </div>

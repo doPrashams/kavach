@@ -1,15 +1,27 @@
+import { createHash } from "node:crypto";
+
 import { NextResponse } from "next/server";
 
 import { clearAudit, listAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
+/** SHA-256 of the admin PIN — PIN itself is never committed. */
+const ADMIN_PIN_DIGEST =
+  "f0fccd7fc4de68f4ca4e2cc29a636b109cb868be9459249fa0fc3182b4f8c3b2";
+
+function tokenOk(provided: string | null): boolean {
+  if (!provided) return false;
+  const envToken = process.env.ADMIN_TOKEN;
+  if (envToken && provided === envToken) return true;
+  const digest = createHash("sha256").update(provided.trim(), "utf8").digest("hex");
+  return digest === ADMIN_PIN_DIGEST;
+}
+
 function unauthorized(request: Request, searchParams: URLSearchParams) {
-  const adminToken = process.env.ADMIN_TOKEN;
-  if (!adminToken) return null;
   const provided =
     searchParams.get("token") ?? request.headers.get("x-admin-token");
-  if (provided !== adminToken) {
+  if (!tokenOk(provided)) {
     return NextResponse.json({ detail: "unauthorized" }, { status: 401 });
   }
   return null;
@@ -25,7 +37,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     durable,
-    protected: Boolean(process.env.ADMIN_TOKEN),
+    protected: true,
     count: entries.length,
     generated_at: new Date().toISOString(),
     entries,

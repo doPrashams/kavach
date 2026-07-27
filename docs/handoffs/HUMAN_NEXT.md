@@ -1,14 +1,41 @@
-# Human submission checklist (post agent run)
+# What you still need to do (exact)
 
-Agent completed H13–H26 code work. You still need:
+Agent work for H13–H26 is done. Your remaining checklist:
 
-1. **Rotate OpenAI key** used in this session (was pasted in chat).
-2. **Video** — record from `docs/VIDEO.md` (includes healthcare + Atlas beats); upload YouTube public.
-3. **Devpost** — paste `docs/DEVPOST.md`; claim all 4 categories; opt into feedback survey; submit by **Aug 8**.
-4. **Slack** — join DataHub Slack `#agent-hackathon`; mention skill PR https://github.com/datahub-project/datahub-skills/pull/61
-5. **Cloud trial** — start https://datahub.com/free-trial/ only on **Aug 10–11** (21 days must cover Aug 17–31 judging). Point live demo at Cloud MCP; record Ask DataHub beat.
-6. **Docs PR** — optional second OSS contrib from `docs/handoffs/H18-oss-bonus/DOCS_PR.md`
-7. After Sep 1: teardown GCP disk + static IP (`docs/handoffs/H20-vm-datapacks/RUN.md`)
+## 1. Rotate the OpenAI key (now)
+The key was pasted in chat — revoke/rotate at https://platform.openai.com/api-keys  
+Then update `backend/.env` with the new key if you keep building locally.
 
-Live demo: https://kavach-self.vercel.app  
-Repo: https://github.com/doPrashams/kavach
+## 2. Skills PR — cannot merge yourself
+Opened: https://github.com/datahub-project/datahub-skills/pull/61  
+Upstream branch protection blocks merge from us. **Watch CI**, reply to review comments if any. Merge only after a DataHub maintainer approves (or they merge it).
+
+Optional second OSS docs PR: draft at `docs/handoffs/H18-oss-bonus/DOCS_PR.md` — open when ready.
+
+## 3. Record the 3-minute video
+Script: `docs/VIDEO.md` (includes healthcare + Atlas beats).  
+Upload to YouTube **public**. Keep under 3 minutes.
+
+## 4. Submit on Devpost (by Aug 8, not the deadline)
+Copy from `docs/DEVPOST.md`.  
+- Project URL: https://kavach-self.vercel.app  
+- Repo: https://github.com/doPrashams/kavach (Apache-2.0)  
+- Claim **all 4** challenge categories  
+- Opt into the **feedback survey** ($50 bonus)  
+- Attach video + screenshots
+
+## 5. Join DataHub Slack
+https://datahub.com/slack → `#agent-hackathon`  
+Mention the skill PR + live demo. Attend office hours if offered.
+
+## 6. DataHub Cloud trial — only Aug 10–11
+Start: https://datahub.com/free-trial/  
+**Do not start earlier** — 21 days must cover judging Aug 17–31.  
+Then point the live demo at Cloud MCP and optionally record an Ask DataHub beat for the video if you re-cut.
+
+## 7. After Sep 1 — tear down GCP
+Stop VM (already stopped). Delete 60GB disk + release static IP `34.60.67.85` so ~$13/mo does not keep billing. Commands in `docs/handoffs/H20-vm-datapacks/RUN.md`.
+
+## Admin Activity log
+Activity log is PIN-gated. Enter your admin code when prompted (SHA-256 only is in the repo — not the PIN).  
+API `/api/admin/audit` also requires the same code via `x-admin-token`.

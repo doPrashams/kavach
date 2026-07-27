@@ -111,11 +111,26 @@ export async function getSiteHealth(): Promise<SiteHealth> {
 }
 
 export async function getAuditLog(limit = 100): Promise<AuditLog> {
-  return fetchJson<AuditLog>(`/api/admin/audit?limit=${limit}`);
+  const { getAdminToken } = await import("@/lib/admin-gate");
+  const token = getAdminToken();
+  if (!token) {
+    throw new Error("Admin unlock required");
+  }
+  return fetchJson<AuditLog>(`/api/admin/audit?limit=${limit}`, {
+    headers: { "x-admin-token": token },
+  });
 }
 
 export async function clearAuditLog(): Promise<{ ok: boolean; cleared: number }> {
-  return fetchJson("/api/admin/audit", { method: "DELETE" });
+  const { getAdminToken } = await import("@/lib/admin-gate");
+  const token = getAdminToken();
+  if (!token) {
+    throw new Error("Admin unlock required");
+  }
+  return fetchJson("/api/admin/audit", {
+    method: "DELETE",
+    headers: { "x-admin-token": token },
+  });
 }
 
 export async function getSiteGuide(): Promise<SiteGuide> {
