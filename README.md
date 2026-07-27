@@ -85,9 +85,22 @@ Live when `DATAHUB_GMS_URL` is set; otherwise fixtures + committed replay record
 
 ## MTTR flywheel results
 
-Repeat `schema_drift` incidents resolve **15× faster** when a prior postmortem is cited
-(3.0s → 0.2s agent processing time). See [`examples/mttr_report.json`](examples/mttr_report.json)
-and the MTTR chart in the war room.
+On the StubLLM path, repeat `schema_drift` agent processing drops **15×** when a prior
+postmortem is cited (3.0s → 0.2s, **measured** from `processing_ms`). Comparison to a
+**30-minute human baseline** is **modeled** — see honesty fields in
+[`examples/mttr_report.json`](examples/mttr_report.json) and the war-room MTTR chart.
+
+## Fixer PRs (demo-pipeline)
+
+| Scenario | Status | Link / artifact |
+|----------|--------|-----------------|
+| `value_corruption` | Merged PR | [#1](https://github.com/doPrashams/kavach-demo-pipeline/pull/1) |
+| `schema_drift` | Dry-run artifact | [`examples/prs/schema_drift/`](examples/prs/schema_drift/) |
+| `null_spike` | Dry-run artifact | [`examples/prs/null_spike/`](examples/prs/null_spike/) |
+| `freshness_lag` | Dry-run artifact | [`examples/prs/freshness_lag/`](examples/prs/freshness_lag/) |
+
+Live PRs target [`doPrashams/kavach-demo-pipeline`](https://github.com/doPrashams/kavach-demo-pipeline).
+Additional Fixer opens need `GITHUB_PAT` (see [`docs/handoffs/H26-fixer-prs-media/STATUS.md`](docs/handoffs/H26-fixer-prs-media/STATUS.md)).
 
 ## Replay (zero API keys)
 
