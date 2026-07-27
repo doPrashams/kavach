@@ -23,6 +23,7 @@ from app.datahub.models import (
     QueryRecord,
     SchemaField,
 )
+from app.errors import DataHubError
 
 logger = structlog.get_logger(__name__)
 
@@ -199,7 +200,11 @@ class DataHubClient:
         return self._live or self._fixture
 
     async def _with_fallback(self, method: str, *args: Any, **kwargs: Any) -> Any:
-        """Try live backend first; degrade to fixtures when live calls fail."""
+        """Try live backend first; degrade to fixtures when live calls fail.
+
+        When ``KAVACH_STRICT_DATAHUB=1``, protocol/HTTP failures (404, JSON-RPC
+        errors, etc.) raise instead of silently returning fixtures.
+        """
         if self._live is None:
             fn = getattr(self._fixture, method)
             return await fn(*args, **kwargs)
@@ -207,6 +212,15 @@ class DataHubClient:
             fn = getattr(self._live, method)
             return await fn(*args, **kwargs)
         except Exception as exc:  # noqa: BLE001
+            if self._settings.kavach_strict_datahub:
+                logger.error(
+                    "datahub.strict_failure",
+                    method=method,
+                    error=str(exc),
+                )
+                if isinstance(exc, DataHubError):
+                    raise
+                raise DataHubError(f"strict DataHub failure on {method}: {exc}") from exc
             logger.warning("datahub.live_fallback", method=method, error=str(exc))
             fn = getattr(self._fixture, method)
             return await fn(*args, **kwargs)

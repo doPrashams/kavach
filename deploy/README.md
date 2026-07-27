@@ -27,7 +27,7 @@ cp deploy/.env.example deploy/.env
 ```bash
 cd deploy
 docker compose up --build -d
-# Optional full DataHub GMS (profile):
+# Optional full DataHub GMS + MCP sidecar (profile):
 docker compose --profile datahub up -d
 ```
 
@@ -36,7 +36,28 @@ Verify:
 ```bash
 curl http://localhost:8000/health
 curl http://localhost:5000/health   # MLflow
+curl http://localhost:8081/health   # mcp-server-datahub (datahub profile)
 ```
+
+### DataHub MCP sidecar
+
+With `--profile datahub`, Compose starts `mcp-server-datahub` (Streamable HTTP on
+port **8081**, JSON-RPC at `/mcp`) with `TOOLS_IS_MUTATION_ENABLED=true`. It reads
+`DATAHUB_GMS_URL` / `DATAHUB_TOKEN` (mapped to `DATAHUB_GMS_TOKEN`) from `deploy/.env`.
+
+Local Cursor / Claude without Compose:
+
+```bash
+TOOLS_IS_MUTATION_ENABLED=true \
+DATAHUB_GMS_URL=http://localhost:8080 \
+DATAHUB_GMS_TOKEN="$DATAHUB_TOKEN" \
+uvx mcp-server-datahub@latest
+```
+
+Repo ships `.cursor/mcp.json` (token via `${DATAHUB_TOKEN}` — never commit secrets).
+Kavach’s backend client POSTs JSON-RPC to `{DATAHUB_GMS_URL}/mcp`. For the Compose
+sidecar, point Kavach at `http://localhost:8081` (or reverse-proxy `/mcp` onto GMS).
+Set `KAVACH_STRICT_DATAHUB=1` so protocol/404 errors raise instead of silent fixtures.
 
 ## Seed platform + demo recordings
 

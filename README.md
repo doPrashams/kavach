@@ -64,9 +64,13 @@ Full diagram: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 | **Context Documents** (read + write) | Flywheel RAG + Scribe postmortem | [`backend/app/flywheel/`](backend/app/flywheel/) |
 | **Glossary / ownership** | Comms notifications | [`backend/app/agents/nodes/comms.py`](backend/app/agents/nodes/comms.py) |
 | **Analytics Agent** | Natural-language catalog Q&A | [`backend/app/analytics/`](backend/app/analytics/) |
-| **MCP Server** | Live tool calls when `DATAHUB_GMS_URL` set | [`backend/app/datahub/mcp.py`](backend/app/datahub/mcp.py) |
+| **MCP Server** | Live JSON-RPC tool calls when `DATAHUB_GMS_URL` set | [`backend/app/datahub/mcp.py`](backend/app/datahub/mcp.py) |
 
 Live when `DATAHUB_GMS_URL` is set; otherwise fixtures + committed replay recordings power offline demos.
+
+> **Ask DataHub / Cloud Analytics:** DataHub Cloud’s managed Ask DataHub product is
+> **Cloud-only** and out of scope for the OSS claim. Kavach’s war-room “Ask DataHub”
+> panel is a fixture/MCP-backed Analytics Agent demo, not the Cloud product.
 
 ## Hackathon categories claimed
 

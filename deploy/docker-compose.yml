@@ -35,6 +35,25 @@ services:
       retries: 5
       start_period: 20s
 
+  # DataHub MCP Streamable HTTP sidecar (JSON-RPC at http://localhost:8081/mcp).
+  # Point Kavach DATAHUB_GMS_URL at this service when exercising live MCP against OSS GMS,
+  # or reverse-proxy /mcp onto the GMS host. Cursor uses stdio via repo .cursor/mcp.json.
+  mcp-server-datahub:
+    image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+    profiles:
+      - datahub
+    ports:
+      - "8081:8000"
+    environment:
+      DATAHUB_GMS_URL: ${DATAHUB_GMS_URL:-http://datahub-gms:8080}
+      DATAHUB_GMS_TOKEN: ${DATAHUB_TOKEN:-}
+      TOOLS_IS_MUTATION_ENABLED: "true"
+      FASTMCP_HOST: "0.0.0.0"
+      FASTMCP_PORT: "8000"
+    command: ["uvx", "mcp-server-datahub@latest", "--transport", "http"]
+    depends_on:
+      - datahub-gms
+
   backend:
     build:
       context: ../backend

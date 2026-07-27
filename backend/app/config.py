@@ -22,6 +22,8 @@ class Settings(BaseSettings):
 
     datahub_gms_url: str | None = None
     datahub_token: str | None = None
+    # When True, live MCP/protocol failures raise (no silent fixture fallback).
+    kavach_strict_datahub: bool = False
 
     github_pat: str | None = None
     demo_pipeline_repo: str = "doPrashams/kavach-demo-pipeline"
