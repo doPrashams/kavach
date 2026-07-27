@@ -31,6 +31,15 @@ docker compose up --build -d
 docker compose --profile datahub up -d
 ```
 
+### LLM provider
+
+Compose sets `LLM_PROVIDER: ${LLM_PROVIDER:-openai}` (not hardcoded stub). Put a real
+`OPENAI_API_KEY` (or Anthropic key) in `deploy/.env` for live agents.
+
+**No-key / offline demo mode:** set `LLM_PROVIDER=stub` in `deploy/.env` (or export it)
+so the backend uses StubLLM. Prefer that for CI, judge replay, and `./scripts/seed_demo.sh`
+when you do not want to call a paid API.
+
 Verify:
 
 ```bash
@@ -103,6 +112,6 @@ Checks `/health`, replays one recording, and confirms `/deck` is reachable on th
 | Issue | Fix |
 |-------|-----|
 | `compose config` fails | Run from `deploy/`; ensure Docker Compose v2 |
-| Backend unhealthy | Check `LLM_PROVIDER=stub` for demo; logs: `docker compose logs backend` |
+| Backend unhealthy | For no-key demos set `LLM_PROVIDER=stub` in `.env`; logs: `docker compose logs backend` |
 | No recordings | Re-run `./scripts/seed_demo.sh` |
 | DataHub unreachable | Agents degrade to fixtures; replay still works offline |

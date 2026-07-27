@@ -68,7 +68,8 @@ services:
       - mlruns:/app/mlruns
     environment:
       MLFLOW_TRACKING_URI: http://mlflow:5000
-      LLM_PROVIDER: stub
+      # Default openai; set LLM_PROVIDER=stub in deploy/.env for no-key / offline demos.
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai}
     depends_on:
       mlflow:
         condition: service_healthy

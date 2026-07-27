@@ -1,31 +1,66 @@
 {
-  "summary": "Kavach MTTR flywheel — agent processing time per incident run",
+  "summary": "Kavach MTTR flywheel — honest agent processing times vs modeled human baseline",
   "unit": "seconds",
-  "method": "Sum of processing_ms from agent timeline events (see backend/app/flywheel/mttr.py)",
+  "method": "Agent MTTR is measured from StubLLM timeline processing_ms (sum per run; see backend/app/flywheel/mttr.py and backend/app/events/metrics/mttr.jsonl). Speedup vs human is a modeled comparison against a cited human baseline — not live OpenAI wall-clock. Full real-LLM re-record deferred (OPENAI_API_KEY present but recording pass skipped as heavy).",
+  "honesty": {
+    "agent_mttr_label": "measured",
+    "vs_human_label": "modeled",
+    "notes": "StubLLM uses the same short-circuit processing_ms for every scenario (first ≈3.0s, repeat-with-prior ≈0.2s). That ratio is real for the stub path but must not be sold as identical real-LLM wall-clock across all four scenarios. Human baseline is a literature midpoint, not a Kavach A/B study."
+  },
+  "human_baseline": {
+    "seconds": 1800,
+    "label": "modeled",
+    "citation": "Conservative 30-minute midpoint for retail data-quality on-call triage before a fix lands (common industry range ~15–45 minutes; cf. PagerDuty State of Digital Operations / typical DQ incident anecdotes). Not measured in this repo.",
+    "source": "modeled midpoint — not a Kavach controlled study"
+  },
   "scenarios": {
     "schema_drift": {
       "first_incident_mttr_seconds": 3.0,
       "repeat_with_prior_postmortem_mttr_seconds": 0.2,
-      "improvement_factor": 15,
-      "cited_prior": true
+      "agent_speedup_factor": 15.0,
+      "agent_speedup_method": "measured",
+      "human_baseline_seconds": 1800,
+      "improvement_vs_human_first_factor": 600.0,
+      "improvement_vs_human_repeat_factor": 9000.0,
+      "improvement_vs_human_method": "modeled",
+      "cited_prior": true,
+      "measured_from": "mttr.jsonl StubLLM processing_ms (schema_drift)"
     },
     "value_corruption": {
       "first_incident_mttr_seconds": 3.0,
       "repeat_with_prior_postmortem_mttr_seconds": 0.2,
-      "improvement_factor": 15,
-      "cited_prior": true
+      "agent_speedup_factor": 15.0,
+      "agent_speedup_method": "measured",
+      "human_baseline_seconds": 1800,
+      "improvement_vs_human_first_factor": 600.0,
+      "improvement_vs_human_repeat_factor": 9000.0,
+      "improvement_vs_human_method": "modeled",
+      "cited_prior": true,
+      "measured_from": "mttr.jsonl StubLLM processing_ms (value_corruption)"
     },
     "freshness_lag": {
       "first_incident_mttr_seconds": 3.0,
       "repeat_with_prior_postmortem_mttr_seconds": 0.2,
-      "improvement_factor": 15,
-      "cited_prior": true
+      "agent_speedup_factor": 15.0,
+      "agent_speedup_method": "measured",
+      "human_baseline_seconds": 1800,
+      "improvement_vs_human_first_factor": 600.0,
+      "improvement_vs_human_repeat_factor": 9000.0,
+      "improvement_vs_human_method": "modeled",
+      "cited_prior": true,
+      "measured_from": "mttr.jsonl StubLLM processing_ms (freshness_lag)"
     },
     "null_spike": {
       "first_incident_mttr_seconds": 3.0,
       "repeat_with_prior_postmortem_mttr_seconds": 0.2,
-      "improvement_factor": 15,
-      "cited_prior": true
+      "agent_speedup_factor": 15.0,
+      "agent_speedup_method": "measured",
+      "human_baseline_seconds": 1800,
+      "improvement_vs_human_first_factor": 600.0,
+      "improvement_vs_human_repeat_factor": 9000.0,
+      "improvement_vs_human_method": "modeled",
+      "cited_prior": true,
+      "measured_from": "mttr.jsonl StubLLM processing_ms (null_spike)"
     }
   },
   "source": "backend/app/events/metrics/mttr.jsonl",
@@ -34,5 +69,6 @@
     "chaos_value_corruption_seed42",
     "chaos_freshness_lag_seed42",
     "chaos_null_spike_seed42"
-  ]
+  ],
+  "deferred": "Full agent-graph re-record with real LLM deferred; honesty rewrite only for this commit."
 }
