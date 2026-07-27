@@ -25,7 +25,7 @@ const slides = [
   {
     id: "atlas",
     title: "How Kavach works",
-    body: "The stack, DataHub connections, data sources, and what is real vs simulated in the demo.",
+    body: "Data sources first, then MCP connections, then every upstream surface we consume from datahub-project/datahub.",
   },
   {
     id: "datahub",

@@ -214,3 +214,11 @@ class DataHubContextService:
     async def add_glossary_term(self, entity_urn: str, term_urn: str) -> dict[str, Any]:
         """Backward-compatible alias for add_terms (single term)."""
         return await self.add_terms(entity_urn, [term_urn])
+
+    async def set_domains(self, entity_urn: str, domain_urns: list[str]) -> dict[str, Any]:
+        """Assign domain membership (MCP set_domains)."""
+        return await self._client.set_domains(entity_urn, domain_urns)
+
+    async def add_owners(self, entity_urn: str, owners: list[str]) -> dict[str, Any]:
+        """Attach ownership (MCP add_owners)."""
+        return await self._client.add_owners(entity_urn, owners)

@@ -483,6 +483,18 @@ class FixtureBackend:
         """Backward-compatible alias for add_terms (single term)."""
         return await self.add_terms(entity_urn, [term_urn])
 
+    async def set_domains(self, entity_urn: str, domain_urns: list[str]) -> dict[str, Any]:
+        """Assign domain membership (MCP set_domains)."""
+        payload = {"entity_urn": entity_urn, "domains": domain_urns}
+        self._append_writeback("set_domains", payload)
+        return payload
+
+    async def add_owners(self, entity_urn: str, owners: list[str]) -> dict[str, Any]:
+        """Attach ownership (MCP add_owners)."""
+        payload = {"entity_urn": entity_urn, "owners": owners}
+        self._append_writeback("add_owners", payload)
+        return payload
+
     async def find_sql_context(self, query_text: str) -> dict[str, Any]:
         """Fixture fallback for MCP find_sql_context."""
         matches = [

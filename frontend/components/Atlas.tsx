@@ -15,6 +15,7 @@ import {
   ATLAS_CONNECTIONS,
   ATLAS_DATA_SOURCES,
   ATLAS_DATAHUB_MATRIX,
+  ATLAS_DATAHUB_UPSTREAM,
   ATLAS_MOTTO,
   ATLAS_REAL_VS_SIMULATED,
   ATLAS_STACK,
@@ -208,6 +209,30 @@ export function AtlasContent({ className }: { className?: string }) {
 
       <section>
         <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Data sources
+        </h3>
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {ATLAS_DATA_SOURCES.map((src) => (
+            <li
+              key={src.id}
+              className="rounded-lg border border-border/40 bg-background/50 px-3 py-2.5 text-sm"
+            >
+              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                <p className="font-medium">{src.name}</p>
+                <span className="text-[11px] text-muted-foreground">{src.kind}</span>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">{src.usedFor}</p>
+              <p className="mt-1 text-[11px] text-emerald-700 dark:text-emerald-300/90">
+                {src.whySafe}
+              </p>
+              <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">{src.license}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           Connections
         </h3>
         <ul className="grid gap-2 sm:grid-cols-2">
@@ -231,23 +256,24 @@ export function AtlasContent({ className }: { className?: string }) {
 
       <section>
         <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          Data sources
+          From datahub-project/datahub
         </h3>
+        <p className="mb-2 text-xs text-muted-foreground">
+          Surfaces we pull from the upstream Context Platform repo and docs — not a fork, a real
+          consumer of their OSS stack.
+        </p>
         <ul className="grid gap-2 sm:grid-cols-2">
-          {ATLAS_DATA_SOURCES.map((src) => (
+          {ATLAS_DATAHUB_UPSTREAM.map((row) => (
             <li
-              key={src.id}
+              key={row.id}
               className="rounded-lg border border-border/40 bg-background/50 px-3 py-2.5 text-sm"
             >
-              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                <p className="font-medium">{src.name}</p>
-                <span className="text-[11px] text-muted-foreground">{src.kind}</span>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">{src.usedFor}</p>
-              <p className="mt-1 text-[11px] text-emerald-700 dark:text-emerald-300/90">
-                {src.whySafe}
+              <p className="font-medium">{row.label}</p>
+              <p className="mt-0.5 font-mono text-[11px] text-sky-700 dark:text-sky-300">
+                {row.upstream}
               </p>
-              <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">{src.license}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{row.howWeUse}</p>
+              <p className="mt-1 font-mono text-[10px] text-muted-foreground">{row.whereInRepo}</p>
             </li>
           ))}
         </ul>

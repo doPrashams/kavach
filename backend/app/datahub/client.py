@@ -56,6 +56,8 @@ class DataHubBackend(Protocol):
         self, dataset_urn_val: str, assertion_type: AssertionType, description: str
     ) -> Assertion: ...
     async def add_terms(self, entity_urn: str, term_urns: list[str]) -> dict[str, Any]: ...
+    async def set_domains(self, entity_urn: str, domain_urns: list[str]) -> dict[str, Any]: ...
+    async def add_owners(self, entity_urn: str, owners: list[str]) -> dict[str, Any]: ...
     async def find_sql_context(self, query_text: str) -> Any: ...
     async def draft_sql_for_tables(self, table_urns: list[str], prompt: str) -> Any: ...
 
@@ -174,6 +176,26 @@ class LiveDataHubBackend:
             dict(result)
             if isinstance(result, dict)
             else {"entity_urn": entity_urn, "terms": term_urns}
+        )
+
+    async def set_domains(self, entity_urn: str, domain_urns: list[str]) -> dict[str, Any]:
+        result = await self._call(
+            "set_domains", {"entity_urn": entity_urn, "domains": domain_urns}
+        )
+        return (
+            dict(result)
+            if isinstance(result, dict)
+            else {"entity_urn": entity_urn, "domains": domain_urns}
+        )
+
+    async def add_owners(self, entity_urn: str, owners: list[str]) -> dict[str, Any]:
+        result = await self._call(
+            "add_owners", {"entity_urn": entity_urn, "owners": owners}
+        )
+        return (
+            dict(result)
+            if isinstance(result, dict)
+            else {"entity_urn": entity_urn, "owners": owners}
         )
 
     async def find_sql_context(self, query_text: str) -> Any:
@@ -322,6 +344,18 @@ class DataHubClient:
         return cast(
             dict[str, Any],
             await self._with_fallback("add_terms", entity_urn, term_urns),
+        )
+
+    async def set_domains(self, entity_urn: str, domain_urns: list[str]) -> dict[str, Any]:
+        return cast(
+            dict[str, Any],
+            await self._with_fallback("set_domains", entity_urn, domain_urns),
+        )
+
+    async def add_owners(self, entity_urn: str, owners: list[str]) -> dict[str, Any]:
+        return cast(
+            dict[str, Any],
+            await self._with_fallback("add_owners", entity_urn, owners),
         )
 
     async def find_sql_context(self, query_text: str) -> Any:

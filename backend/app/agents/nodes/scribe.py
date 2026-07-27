@@ -76,6 +76,12 @@ async def run(state: IncidentState, ctx: AgentContext) -> IncidentState:
     await ctx.datahub.add_tags(urn, resolve_tags)
     if is_phi:
         await ctx.datahub.add_terms(urn, [HIPAA_TERM, PII_TERM])
+        await ctx.datahub.set_domains(urn, ["urn:li:domain:healthcare"])
+        await ctx.datahub.add_owners(urn, ["urn:li:corpuser:privacy-officer"])
+    else:
+        await ctx.datahub.set_domains(urn, ["urn:li:domain:retail"])
+        await ctx.datahub.add_owners(urn, ["urn:li:corpuser:data-platform"])
+    if is_phi:
         await ctx.datahub.update_description(
             urn, "Patient analytics mart — post-incident (PHI masked, HIPAA/PII tagged)"
         )

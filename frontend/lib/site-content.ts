@@ -252,19 +252,39 @@ export const ATLAS_STACK = [
 
 export const ATLAS_DATAHUB_MATRIX = [
   {
-    capability: "MCP Server",
+    capability: "MCP Server (JSON-RPC / Streamable HTTP)",
     access: "READ|WRITE" as const,
     path: "backend/app/datahub/mcp.py",
   },
   {
-    capability: "Agent Context Kit",
+    capability: "Agent Context Kit (datahub-agent-context)",
     access: "READ|WRITE" as const,
     path: "backend/app/datahub/context_kit.py",
   },
   {
-    capability: "Lineage (table + column)",
+    capability: "search / get_entities",
+    access: "READ" as const,
+    path: "backend/app/datahub/client.py",
+  },
+  {
+    capability: "get_lineage (table + column)",
     access: "READ" as const,
     path: "backend/app/datahub/service.py",
+  },
+  {
+    capability: "list_schema_fields",
+    access: "READ" as const,
+    path: "backend/app/datahub/service.py",
+  },
+  {
+    capability: "get_dataset_queries / find_sql_context",
+    access: "READ" as const,
+    path: "backend/app/agents/nodes/investigator.py",
+  },
+  {
+    capability: "draft_sql_for_tables",
+    access: "READ" as const,
+    path: "backend/app/agents/nodes/fixer.py",
   },
   {
     capability: "ML entities (feature → model → deployment)",
@@ -272,12 +292,7 @@ export const ATLAS_DATAHUB_MATRIX = [
     path: "ml/lineage.py",
   },
   {
-    capability: "Query history",
-    access: "READ" as const,
-    path: "data/fixtures/queries.json",
-  },
-  {
-    capability: "Incidents",
+    capability: "Incidents (create / resolve)",
     access: "READ|WRITE" as const,
     path: "backend/app/agents/nodes/sentinel.py",
   },
@@ -287,24 +302,102 @@ export const ATLAS_DATAHUB_MATRIX = [
     path: "examples/assertions/",
   },
   {
-    capability: "Context Documents",
+    capability: "Context Documents (search / grep / save)",
     access: "READ|WRITE" as const,
     path: "backend/app/flywheel/",
   },
   {
-    capability: "Glossary / ownership",
+    capability: "Tags / glossary terms (add_tags, add_terms)",
+    access: "WRITE" as const,
+    path: "backend/app/agents/nodes/scribe.py",
+  },
+  {
+    capability: "Domains / ownership (set_domains, add_owners)",
+    access: "WRITE" as const,
+    path: "backend/app/agents/nodes/scribe.py",
+  },
+  {
+    capability: "Descriptions (update_description)",
+    access: "WRITE" as const,
+    path: "backend/app/agents/nodes/scribe.py",
+  },
+  {
+    capability: "Cursor MCP integration",
     access: "READ|WRITE" as const,
-    path: "backend/app/agents/nodes/comms.py",
+    path: ".cursor/mcp.json",
   },
   {
-    capability: "Analytics Agent",
-    access: "READ" as const,
-    path: "backend/app/analytics/",
-  },
-  {
-    capability: "Skills (OSS)",
+    capability: "Skills (datahub-incident-response)",
     access: "READ" as const,
     path: "skills/datahub-incident-response/",
+  },
+  {
+    capability: "Analytics Agent / Ask DataHub",
+    access: "READ" as const,
+    path: "backend/app/analytics/ (Cloud-only — labeled honestly)",
+  },
+] as const;
+
+/** Upstream Context Platform pieces we consume from github.com/datahub-project/datahub */
+export const ATLAS_DATAHUB_UPSTREAM = [
+  {
+    id: "mcp-server-datahub",
+    label: "mcp-server-datahub",
+    upstream: "acryldata/mcp-server-datahub · docs/features/feature-guides/mcp.md",
+    howWeUse:
+      "Sidecar + JSON-RPC client: initialize, tools/list, tools/call with mutations enabled.",
+    whereInRepo: "deploy/docker-compose.yml · backend/app/datahub/mcp.py",
+  },
+  {
+    id: "agent-context-kit",
+    label: "Agent Context Kit",
+    upstream: "pip: datahub-agent-context · docs/dev-guides/agent-context/",
+    howWeUse:
+      "build_langchain_tools(include_mutations=True) inside LangGraph — not a hand-rolled fake kit.",
+    whereInRepo: "backend/app/datahub/context_kit.py · backend/pyproject.toml",
+  },
+  {
+    id: "acryl-datahub-sdk",
+    label: "acryl-datahub Python SDK",
+    upstream: "metadata-ingestion / Python SDK in datahub-project/datahub",
+    howWeUse: "Ingestion recipes, ML lineage emit, datapack load on the OSS quickstart VM.",
+    whereInRepo: "data/ingestion/ · ml/lineage.py",
+  },
+  {
+    id: "metadata-model",
+    label: "Metadata model entities",
+    upstream: "entity docs: Dataset, MLModel, Incident, Assertion, Domain, GlossaryTerm, Document",
+    howWeUse:
+      "Agents read/write the graph entities judges care about — not just search demos.",
+    whereInRepo: "backend/app/datahub/models.py · examples/",
+  },
+  {
+    id: "cursor-guide",
+    label: "Official Cursor guide",
+    upstream: "docs/dev-guides/agent-context/cursor",
+    howWeUse: "Ship .cursor/mcp.json so judges cloning Kavach get DataHub MCP in the editor.",
+    whereInRepo: ".cursor/mcp.json",
+  },
+  {
+    id: "skills-repo",
+    label: "datahub-skills contribution",
+    upstream: "datahub-project/datahub-skills (companion to core)",
+    howWeUse: "Opened PR #61: datahub-incident-response skill distilled from our agent loop.",
+    whereInRepo: "skills/datahub-incident-response/",
+  },
+  {
+    id: "quickstart",
+    label: "Docker quickstart",
+    upstream: "docs/quickstart · ~/.datahub/quickstart compose",
+    howWeUse: "Self-hosted GMS for build/demo; Cloud trial reserved for judging Ask DataHub.",
+    whereInRepo: "docs/handoffs/H20-vm-datapacks/RUN.md",
+  },
+  {
+    id: "datapacks",
+    label: "Sample datapacks",
+    upstream: "hackathon Resources + static-assets datapacks",
+    howWeUse: "showcase-ecommerce + bootstrap loaded on VM; retail/healthcare/nyc framing in Atlas.",
+    whereInRepo: "frontend/lib/site-content.ts (ATLAS_DATA_SOURCES)",
   },
 ] as const;
 
