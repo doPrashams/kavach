@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 
+import { AtlasContent } from "@/components/Atlas";
 import { getDemoFixture } from "@/lib/fixtures";
 
 const slides = [
@@ -20,6 +21,11 @@ const slides = [
     id: "loop",
     title: "The self-healing loop",
     body: "Inject chaos → Sentinel detects → Investigator roots cause → Fixer ships a PR → Scribe writes back → MTTR drops.",
+  },
+  {
+    id: "atlas",
+    title: "How Kavach works",
+    body: "The stack, DataHub connections, data sources, and what is real vs simulated in the demo.",
   },
   {
     id: "datahub",
@@ -67,6 +73,7 @@ export default function DeckPage() {
             <h2 className="text-3xl font-semibold">{slide.title}</h2>
             <p className="mt-4 max-w-3xl text-lg text-muted-foreground">{slide.body}</p>
             {slide.id === "loop" ? <LoopDiagram /> : null}
+            {slide.id === "atlas" ? <AtlasContent className="mt-8" /> : null}
             {slide.id === "results" ? <MttrStrip values={mttr} /> : null}
           </motion.section>
         ))}

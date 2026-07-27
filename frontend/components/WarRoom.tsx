@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AgentFeed } from "@/components/AgentFeed";
 import { AskDataHubPanel } from "@/components/AskDataHubPanel";
+import { Atlas } from "@/components/Atlas";
 import { BlastRadiusGraph } from "@/components/BlastRadiusGraph";
 import { ChaosPanel } from "@/components/ChaosPanel";
 import { IncidentReport } from "@/components/IncidentReport";
@@ -185,6 +186,7 @@ export function WarRoom() {
 
   return (
     <div className="flex min-h-screen bg-[radial-gradient(ellipse_at_top,_#e8eef7_0%,_#f4f7fb_42%,_#eef2f7_100%)] text-foreground dark:bg-[radial-gradient(ellipse_at_top,_#1e293b_0%,_#0f172a_45%,_#020617_100%)]">
+      <Atlas />
       <div className="sticky top-0 hidden h-screen w-72 shrink-0 border-r border-slate-200/80 bg-white/70 backdrop-blur dark:border-slate-800 dark:bg-slate-950/50 lg:block">
         <LeftNav
           runHistory={runHistory}
