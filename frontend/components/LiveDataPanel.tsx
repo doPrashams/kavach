@@ -20,6 +20,8 @@ const COLUMN_LABELS: Record<string, string> = {
   dob: "dob",
   state: "state",
   plan: "plan",
+  medication_code: "med_code",
+  diagnosis: "diagnosis",
 };
 
 const TONE: Record<string, string> = {

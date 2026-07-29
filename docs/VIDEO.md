@@ -11,8 +11,8 @@ Record screen + voiceover per [`handoffs/H12-submission/SUBMIT.md`](handoffs/H12
 | 0:45 | Investigation | Agent feed scrolling; lineage graph highlights | "Investigator walks upstream lineage and query history. Impact Analyst maps blast radius. ML Guardian sees the demand forecast deployment at risk — and recommends a hold." |
 | 1:10 | Fix | PR card appears; show diff in `examples/prs/value_corruption` | "Fixer generates a dbt PR — clean the outliers, add a range assertion — without a human writing SQL." |
 | 1:35 | Write-back | Postmortem card; DataHub incident resolved | "Scribe writes the postmortem back to DataHub as a Context Document. Incident resolved. Tags and assertions updated." |
-| 1:50 | Healthcare beat | Domain toggle → Humans → inject `phi_exposure` | "Same agents, different stakes. A PHI column leaking into a broader mart is a governance failure — Kavach writes HIPAA glossary terms and PII tags back to DataHub." |
-| 2:10 | Atlas | Open How Kavach works pill; hover DataHub tile | "One screen shows every integration — MCP, Agent Context Kit, Skills — and what is live versus replay." |
+| 1:50 | Healthcare beat | Domain toggle → Humans → inject `phi_exposure`; probe link = Synthea | "Same agents, different stakes. A PHI column leaking into a broader mart is a governance failure — Kavach writes HIPAA glossary terms and PII tags back to DataHub. Probe links to Synthea, never taxi." |
+| 2:10 | Atlas | Open How Kavach works; scroll **Two use cases** above Stack | "One screen shows Systems vs Humans, then every integration — MCP, Agent Context Kit, Skills — and what is live versus replay." |
 | 2:30 | Flywheel | MTTR panel (honest measured wall-clock) | "Repeat incidents cite prior postmortems. We report measured agent time against a published human baseline — labeled as modeled, not magic." |
 | 2:45 | OSS + close | skill PR #61; `/deck` | "We opened the datahub-incident-response skill upstream. Kavach — health for systems, health for humans — powered by DataHub." |
 

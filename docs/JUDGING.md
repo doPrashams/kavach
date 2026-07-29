@@ -37,8 +37,8 @@ Evidence: [`examples/mttr_report.json`](../examples/mttr_report.json), [`skills/
 ## 4. Real-world impact
 
 - Retail pipeline (orders → marts → demand forecast) mirrors production incident patterns
+- Dual domain: **Systems** (NYC TLC probes) + **Humans** (Synthea-style synthetic PHI / clinical nulls)
 - Fixer opens real dbt PRs against [`kavach-demo-pipeline`](https://github.com/doPrashams/kavach-demo-pipeline)
-- Simulated scenario library shows extensibility (healthcare PII, NYC taxi)
 - Deploy runbook for VM + Vercel judge access
 
 Evidence: [`deploy/README.md`](../deploy/README.md), [`examples/prs/`](../examples/prs/)

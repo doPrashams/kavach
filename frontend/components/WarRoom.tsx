@@ -208,6 +208,7 @@ export function WarRoom() {
             </div>
             <div className="flex items-center gap-2">
               <div
+                data-tour-id="tour-domains"
                 className="flex items-center rounded-lg border border-border/60 bg-background/60 p-0.5 text-xs"
                 role="group"
                 aria-label="Domain filter"

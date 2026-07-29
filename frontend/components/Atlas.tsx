@@ -16,6 +16,7 @@ import {
   ATLAS_DATA_SOURCES,
   ATLAS_DATAHUB_MATRIX,
   ATLAS_DATAHUB_UPSTREAM,
+  ATLAS_DOMAINS,
   ATLAS_MOTTO,
   ATLAS_REAL_VS_SIMULATED,
   ATLAS_STACK,
@@ -183,6 +184,35 @@ export function AtlasContent({ className }: { className?: string }) {
         {ATLAS_MOTTO}
       </p>
 
+      <section>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Two use cases
+        </h3>
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {ATLAS_DOMAINS.map((d) => (
+            <li
+              key={d.id}
+              className="rounded-xl border border-border/50 bg-background/60 px-3 py-3 text-sm"
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-600 dark:text-sky-300">
+                {d.id}
+              </p>
+              <p className="mt-1 font-semibold">{d.label}</p>
+              <p className="text-xs text-muted-foreground">{d.tagline}</p>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{d.body}</p>
+              <a
+                href={d.dataLink.url}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-flex text-xs text-sky-600 hover:underline dark:text-sky-300"
+              >
+                {d.dataLink.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <div>
         <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           Stack
@@ -226,6 +256,16 @@ export function AtlasContent({ className }: { className?: string }) {
                 {src.whySafe}
               </p>
               <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">{src.license}</p>
+              {"url" in src && src.url ? (
+                <a
+                  href={src.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1 inline-flex text-xs text-sky-600 hover:underline dark:text-sky-300"
+                >
+                  Open source
+                </a>
+              ) : null}
             </li>
           ))}
         </ul>

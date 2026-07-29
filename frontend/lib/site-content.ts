@@ -3,36 +3,41 @@
 export const SITE_INSTRUCTIONS = [
   {
     step: 1,
-    title: "Read the Scenarios tab",
-    body: "Open the Scenarios tab (left nav) to see the failure modes — what breaks, the business impact, how Kavach detects it, and the auto-fix. Toggle Systems vs Humans in the war-room header. Start here so the incident makes sense.",
+    title: "Know the two domains",
+    body: "Kavach is one agent team, two stakes: Systems (retail/ML on NYC TLC) and Humans (PHI / clinical codes on Synthea synthetic patients). Toggle Systems | Humans in the header, or open How Kavach works — Two use cases sits above the stack.",
   },
   {
     step: 2,
+    title: "Read the Scenarios tab",
+    body: "Open the Scenarios tab (left nav) to see the failure modes for the active domain — what breaks, impact, how Kavach detects it, and the auto-fix.",
+  },
+  {
+    step: 3,
     title: "Pick a scenario in the Chaos panel",
     body: "Top-left Chaos panel lists scenarios for the active domain. Each is a genuine data failure (schema drift, null spike, PHI exposure, medication nulls, and more), not a canned animation.",
   },
   {
-    step: 3,
+    step: 4,
     title: "Inject Chaos and watch it CRASH",
     body: "Click Inject Chaos. A red INCIDENT ACTIVE banner appears showing exactly what is breaking and the downstream impact — the pipeline is degraded, not fixed.",
   },
   {
-    step: 4,
+    step: 5,
     title: "Watch the 7 agents respond in real time",
     body: "Sentinel → Investigator → Impact Analyst → ML Guardian → Fixer → Scribe → Comms light up one by one in the agent feed as they diagnose and remediate.",
   },
   {
-    step: 5,
+    step: 6,
     title: "See the blast radius and ML gate",
-    body: "The lineage graph highlights affected tables, dashboards, and ML deployments. ML Guardian HOLDS the production model when features are poisoned.",
+    body: "The lineage graph highlights affected tables, dashboards, and ML deployments — or who can read an exposed PHI mart. Check the Live data probe link: Systems → NYC TLC, Humans → Synthea.",
   },
   {
-    step: 6,
+    step: 7,
     title: "Review the fix and resolution",
     body: "The banner flips to green RESOLVED. Open the Fixer PR (real GitHub PR), read the postmortem written back to DataHub, and see MTTR drop as Kavach learns.",
   },
   {
-    step: 7,
+    step: 8,
     title: "Replay, Ask DataHub, or open /deck",
     body: "Replay scrubs any recorded incident deterministically. Ask DataHub shows before/after context. /deck is the animated judging pitch.",
   },
@@ -45,7 +50,7 @@ export const ABOUT_ME = {
   repo: "https://github.com/doPrashams/kavach",
   demoPipeline: "https://github.com/doPrashams/kavach-demo-pipeline",
   blurb:
-    "Builder of Kavach for the DataHub Agent Hackathon — a self-healing data platform where AI agents detect, diagnose, fix, and learn from data incidents using DataHub’s context graph.",
+    "Builder of Kavach for the DataHub Agent Hackathon — health for systems and health for humans: one agent team on DataHub’s context graph for retail/ML reliability and PHI governance.",
 } as const;
 
 export const TECH_STACK = [
@@ -58,22 +63,28 @@ export const TECH_STACK = [
 
 export const TOUR_STEPS = [
   {
+    id: "domains",
+    target: "tour-domains",
+    title: "0. Two domains — systems and humans",
+    body: "Kavach is one agent team, two stakes. Toggle Systems (retail/ML reliability on NYC TLC data) vs Humans (PHI / clinical codes on Synthea-style synthetic patients). Same DataHub write-back — different blast radius.",
+  },
+  {
     id: "chaos",
     target: "tour-chaos",
     title: "1. Chaos panel — pick a real failure",
-    body: "This is your control panel. Choose a genuine data incident (schema drift, null spike, value corruption, freshness lag, PHI exposure, patient medication nulls, taxi SLA breach) after picking Systems or Humans in the header, then click Inject Chaos. Each seeds a real, deterministic failure — not a scripted animation.",
+    body: "This is your control panel. Choose a genuine data incident for the active domain, then click Inject Chaos. Each seeds a real, deterministic failure — not a scripted animation.",
   },
   {
     id: "incident",
     target: "tour-incident",
     title: "2. The pipeline CRASHES",
-    body: "The moment you inject, a red INCIDENT ACTIVE banner appears at the top. It spells out exactly what broke (e.g. 'dbt run FAILED — column quantity not found') and the business impact. Nothing is fixed yet — this is the outage.",
+    body: "The moment you inject, a red INCIDENT ACTIVE banner appears at the top. It spells out exactly what broke and the business or clinical impact. Nothing is fixed yet — this is the outage.",
   },
   {
     id: "data",
     target: "tour-data",
-    title: "3. Live data probe — REAL data, real anomalies",
-    body: "This panel queries a real public dataset (NYC TLC Yellow Taxi, 112M rows). The red rows are genuine data-quality failures in that dataset — fares of −$800, zero-passenger trips, year-2084 timestamps. Kavach isn't faking a demo; it's catching real corruption.",
+    title: "3. Live data probe — right source per domain",
+    body: "Systems: real NYC TLC Yellow Taxi anomalies (negative fares, impossible timestamps). Humans: Synthea-style synthetic patients — never real PHI. The provider link always matches the domain you selected.",
   },
   {
     id: "feed",
@@ -85,7 +96,7 @@ export const TOUR_STEPS = [
     id: "blast",
     target: "tour-blast",
     title: "5. Blast-radius graph — who's affected",
-    body: "Column-level lineage from DataHub shows every table, dashboard, and ML deployment downstream of the failure. This is how Kavach knows the true scope before touching anything.",
+    body: "Column-level lineage from DataHub shows every table, dashboard, and ML deployment downstream — or who can read an exposed PHI mart.",
   },
   {
     id: "ml",
@@ -103,7 +114,7 @@ export const TOUR_STEPS = [
     id: "postmortem",
     target: "tour-postmortem",
     title: "8. Postmortem — write knowledge back",
-    body: "Scribe writes the incident back into DataHub as a Context Document and tags affected assets, so the NEXT agent run inherits this knowledge instead of starting from zero.",
+    body: "Scribe writes the incident back into DataHub as a Context Document and tags affected assets (plus domains/owners/HIPAA terms for Humans), so the NEXT agent run inherits this knowledge.",
   },
   {
     id: "analytics",
@@ -127,7 +138,7 @@ export const TOUR_STEPS = [
     id: "health",
     target: "tour-health",
     title: "12. Site health & Scenarios tab",
-    body: "The left nav shows live status of every API route and where the site is deployed. Open the Scenarios tab any time for a full description of every failure mode (Systems and Humans domains).",
+    body: "The left nav shows live status of every API route and where the site is deployed. Open the Scenarios tab any time for a full description of every failure mode (Systems and Humans).",
   },
 ] as const;
 
@@ -156,6 +167,32 @@ export const ATLAS_MOTTO = [
   "Health for systems, health for humans: the same agents heal a retail warehouse and a healthcare domain.",
   "Loop: chaos breaks it → agents detect → root-cause → gate the model → open a real PR → write knowledge back.",
 ].join("\n");
+
+/** Two use cases — shown above the stack in Atlas so judges see the dual frame immediately. */
+export const ATLAS_DOMAINS = [
+  {
+    id: "systems",
+    label: "Health for systems",
+    tagline: "Retail / ops / ML reliability",
+    body: "Schema drift, null spikes, value corruption, freshness lag on DuckDB + dbt. Blast radius hits marts, dashboards, and the demand-forecast deployment. Live data probes use NYC TLC Yellow Taxi (public).",
+    dataLink: {
+      label: "NYC TLC Yellow Taxi (Open Data)",
+      url: "https://data.cityofnewyork.us/Transportation/2018-Yellow-Taxi-Trip-Data/t29m-gskq/about_data",
+    },
+    scenarios: ["schema_drift", "null_spike", "value_corruption", "freshness_lag", "nyc_taxi_freshness"],
+  },
+  {
+    id: "humans",
+    label: "Health for humans",
+    tagline: "Healthcare governance / clinical quality",
+    body: "PHI exposure and medication null spikes. Blast radius is who can read the mart and who drops out of a cohort — not a revenue dashboard. Probes use Synthea-style synthetic patients (no real PHI).",
+    dataLink: {
+      label: "Synthea — synthetic patients (no real PHI)",
+      url: "https://synthetichealth.github.io/synthea/",
+    },
+    scenarios: ["healthcare_pii", "phi_exposure", "patient_null_spike"],
+  },
+] as const;
 
 export const ATLAS_STACK = [
   {
@@ -432,7 +469,17 @@ export const ATLAS_DATA_SOURCES = [
     kind: "Public trip data",
     license: "NYC Open Data / TLC terms (public)",
     whySafe: "City-published trip records; we cite anomalies that already exist in the feed.",
-    usedFor: "Live data probe in the war room (negative fares, zero passengers, bad timestamps).",
+    usedFor: "Systems domain live probe (negative fares, zero passengers, bad timestamps).",
+    url: "https://data.cityofnewyork.us/Transportation/2018-Yellow-Taxi-Trip-Data/t29m-gskq/about_data",
+  },
+  {
+    id: "synthea",
+    name: "Synthea synthetic patients",
+    kind: "Synthetic clinical data generator",
+    license: "Apache-2.0 (Synthea project)",
+    whySafe: "Synthetic patients only — zero real PHI. War-room Humans probes are patterned after Synthea, not live PHI.",
+    usedFor: "Humans domain probe link + PHI / medication-null scenarios.",
+    url: "https://synthetichealth.github.io/synthea/",
   },
 ] as const;
 

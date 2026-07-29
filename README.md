@@ -12,6 +12,14 @@ and learn from data incidents automatically.
 **Live demo:** [https://kavach-self.vercel.app](https://kavach-self.vercel.app)  
 **DataHub UI (self-hosted VM):** [http://34.60.67.85:9002](http://34.60.67.85:9002) (may be offline outside demos — use replay mode)
 
+**Two domains, one agent team:**
+| Domain | Stakes | Live data probe |
+|--------|--------|-----------------|
+| **Systems** | Retail / ops / ML reliability | [NYC TLC Yellow Taxi](https://data.cityofnewyork.us/Transportation/2018-Yellow-Taxi-Trip-Data/t29m-gskq/about_data) |
+| **Humans** | PHI governance / clinical quality | [Synthea synthetic patients](https://synthetichealth.github.io/synthea/) (no real PHI) |
+
+Toggle **Systems | Humans** in the war-room header. Atlas (“How Kavach works”) lists both above the stack. Site tour step 0 explains the dual frame.
+
 Record a demo GIF per [`docs/VIDEO.md`](docs/VIDEO.md) for Devpost.
 
 ## Quickstart (60 seconds)

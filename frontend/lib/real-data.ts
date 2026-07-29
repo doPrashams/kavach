@@ -233,7 +233,7 @@ export function getScenarioProbe(scenario: string): DataProbe {
     };
   }
 
-  if (scenario === "healthcare_pii") {
+  if (scenario === "healthcare_pii" || scenario === "phi_exposure") {
     const synthetic: DataProbeRow[] = [
       { cells: { patient_id: "P-1042", ssn: "•••-••-4821", dob: "1978-03-11", state: "CA", plan: "PPO" }, anomaly: true, reason: "ssn was unmasked" },
       { cells: { patient_id: "P-1043", ssn: "•••-••-9930", dob: "1990-07-02", state: "NY", plan: "HMO" }, anomaly: true, reason: "ssn was unmasked" },
@@ -244,22 +244,59 @@ export function getScenarioProbe(scenario: string): DataProbe {
       simulated: true,
       source: {
         dataset: "Synthetic patient records (no real PII)",
-        provider: "Kavach demo",
-        url: DATA.taxi.url,
-        fetched_at: DATA.taxi.fetched_at,
+        provider: "Synthea · synthetic patients",
+        url: "https://synthetichealth.github.io/synthea/",
+        fetched_at: DATA.generated_at,
         rows_scanned: 48211,
       },
-      query: "SELECT patient_id, ssn FROM mart_patient_analytics",
+      query:
+        scenario === "phi_exposure"
+          ? "SELECT patient_id, ssn FROM mart_patient_analytics /* PHI leaked from restricted source */"
+          : "SELECT patient_id, ssn FROM mart_patient_analytics",
       columns: ["patient_id", "ssn", "dob", "state", "plan"],
       highlight_column: "ssn",
-      headline: "Unmasked SSNs detected in an analytics mart — shown masked here (synthetic data, no real PII)",
+      headline:
+        scenario === "phi_exposure"
+          ? "PHI column leaked into a broader analytics mart — shown masked (synthetic data, no real PHI)"
+          : "Unmasked SSNs detected in an analytics mart — shown masked here (synthetic data, no real PII)",
       rows: synthetic,
       metrics: [
         { label: "PII columns", value: "1 (ssn)", tone: "bad" },
         { label: "Rows exposed", value: fmtInt(48211), tone: "bad" },
         { label: "Regulation", value: "HIPAA", tone: "warn" },
       ],
-      note: "Simulated compliance scenario. Kavach masks the column (SHA-256) and tags it with PII glossary terms in DataHub.",
+      note: "Humans domain (simulated). Patterns inspired by Synthea synthetic patients — zero real PHI. Kavach masks the column and writes HIPAA/PII glossary terms + domains back to DataHub.",
+    };
+  }
+
+  if (scenario === "patient_null_spike") {
+    const rows: DataProbeRow[] = [
+      { cells: { patient_id: "P-2201", medication_code: "NULL", diagnosis: "E11.9", state: "CA" }, anomaly: true, reason: "medication_code null — patient drops from cohort" },
+      { cells: { patient_id: "P-2202", medication_code: "NULL", diagnosis: "I10", state: "NY" }, anomaly: true, reason: "medication_code null" },
+      { cells: { patient_id: "P-2203", medication_code: "A10BA02", diagnosis: "E11.9", state: "TX" }, anomaly: false },
+      { cells: { patient_id: "P-2204", medication_code: "NULL", diagnosis: "J45.20", state: "WA" }, anomaly: true, reason: "medication_code null" },
+    ];
+    return {
+      scenario,
+      simulated: true,
+      source: {
+        dataset: "Synthetic clinical codes (no real PHI)",
+        provider: "Synthea · synthetic patients",
+        url: "https://synthetichealth.github.io/synthea/",
+        fetched_at: DATA.generated_at,
+        rows_scanned: 55120,
+      },
+      query: "SELECT patient_id, medication_code, diagnosis FROM mart_patient_cohort",
+      columns: ["patient_id", "medication_code", "diagnosis", "state"],
+      highlight_column: "medication_code",
+      headline: "Null spike on medication_code silently drops patients from clinical cohorts",
+      rows,
+      metrics: [
+        { label: "Null rate", value: "38%", tone: "bad" },
+        { label: "Cohort loss", value: "~21k pts", tone: "bad" },
+        { label: "Domain", value: "Humans", tone: "warn" },
+      ],
+      note: "Humans domain (simulated). Same null-spike mechanics as retail — stakes are clinical, not revenue. Data patterned after Synthea; no real PHI.",
     };
   }
 

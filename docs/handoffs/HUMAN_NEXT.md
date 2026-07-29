@@ -39,3 +39,8 @@ Stop VM (already stopped). Delete 60GB disk + release static IP `34.60.67.85` so
 ## Admin Activity log
 Activity log is PIN-gated. Enter your admin code when prompted (SHA-256 only is in the repo — not the PIN).  
 API `/api/admin/audit` also requires the same code via `x-admin-token`.
+
+## After next deploy — spot-check probe links
+1. **Systems** → Live data probe provider → NYC TLC (cityofnewyork.us)
+2. **Humans** → healthcare/PHI scenario → Synthea (`synthetichealth.github.io/synthea`) — never taxi
+3. Atlas → **Two use cases** above Stack; Play site tour → step 0 domains

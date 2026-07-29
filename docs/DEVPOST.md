@@ -52,8 +52,8 @@ with zero API keys for judges.
 
 - 7-agent incident response team end-to-end with real ACK tools (`get_dataset_queries`,
   `draft_sql_for_tables`, mutations)
-- Retail + healthcare domains (systems / humans) including `phi_exposure` governance scenario
-- Atlas ("How Kavach works") — logo grid + DataHub READ/WRITE matrix for judges
+- Retail + healthcare domains (**Systems** / **Humans**): NYC TLC for systems probes, Synthea for humans (no real PHI); `phi_exposure` governance scenario
+- Atlas ("How Kavach works") — **Two use cases** above the stack + logo grid + DataHub READ/WRITE matrix
 - OSS skill PR: https://github.com/datahub-project/datahub-skills/pull/61
 - Judge-facing `examples/` — PRs, postmortems, assertions, redacted MCP transcripts
 
