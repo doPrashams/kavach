@@ -89,9 +89,9 @@ export async function GET(request: Request) {
     datahub = { ok: false, status: 0, url: DEPLOYMENT_INFO.backend_optional.url };
   }
 
-  const apiOk = checks.every((c) => c.ok);
+  const requiredOk = checks.filter((c) => c.required !== false).every((c) => c.ok);
   const body = {
-    status: apiOk ? "ok" : "degraded",
+    status: requiredOk ? "ok" : "degraded",
     version: "0.2.0",
     mode: "fixture-api",
     checked_at: new Date().toISOString(),
@@ -102,8 +102,9 @@ export async function GET(request: Request) {
       total: checks.length,
       healthy: checks.filter((c) => c.ok).length,
       failed: checks.filter((c) => !c.ok).map((c) => c.path),
+      required_failed: checks.filter((c) => c.required !== false && !c.ok).map((c) => c.path),
     },
   };
 
-  return NextResponse.json(body, { status: apiOk ? 200 : 503 });
+  return NextResponse.json(body, { status: requiredOk ? 200 : 503 });
 }

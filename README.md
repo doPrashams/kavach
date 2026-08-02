@@ -9,8 +9,8 @@ and learn from data incidents automatically.
 > Your data platform breaks at 2am. Kavach is the war room that resolves it before the
 > dashboard turns red.
 
-**Live demo:** [https://kavach-self.vercel.app](https://kavach-self.vercel.app)  
-**DataHub UI (self-hosted VM):** [http://34.60.67.85:9002](http://34.60.67.85:9002) (may be offline outside demos — use replay mode)
+**Live demo:** [https://kavach-self.vercel.app](https://kavach-self.vercel.app) — **Replay works with zero API keys** (DataHub VM optional / usually offline).  
+**DataHub UI (optional live):** [http://34.60.67.85:9002](http://34.60.67.85:9002) — start only for live MCP demos; otherwise use Replay + `examples/datahub-transcripts/`.
 
 **Two domains, one agent team:**
 | Domain | Stakes | Live data probe |
@@ -20,7 +20,7 @@ and learn from data incidents automatically.
 
 Toggle **Systems | Humans** in the war-room header. Atlas (“How Kavach works”) lists both above the stack. Site tour step 0 explains the dual frame.
 
-Record a demo GIF per [`docs/VIDEO.md`](docs/VIDEO.md) for Devpost.
+**Submit package:** paste [`docs/DEVPOST.md`](docs/DEVPOST.md) · record per [`docs/VIDEO.md`](docs/VIDEO.md) · checklist [`docs/handoffs/H12-submission/SUBMIT.md`](docs/handoffs/H12-submission/SUBMIT.md) · human leftovers [`docs/handoffs/HUMAN_NEXT.md`](docs/handoffs/HUMAN_NEXT.md).
 
 ## Quickstart (60 seconds)
 
@@ -89,7 +89,7 @@ Live when `DATAHUB_GMS_URL` is set; otherwise fixtures + committed replay record
 | **Cat 3 — ML lineage** | Demand forecast model + deployment hold | [`ml/`](ml/), [`examples/risk_reports/value_corruption.md`](examples/risk_reports/value_corruption.md) |
 | **Cat 4 — Knowledge flywheel** | Postmortem RAG lowers MTTR on repeat incidents | [`backend/app/flywheel/`](backend/app/flywheel/), [`examples/mttr_report.json`](examples/mttr_report.json) |
 
-**Bonus — OSS contribution:** [`skills/datahub-incident-response/`](skills/datahub-incident-response/) → upstream PR guide in [`docs/handoffs/H10-skill-pr/SUBMIT.md`](docs/handoffs/H10-skill-pr/SUBMIT.md)
+**Bonus — OSS contribution:** [`skills/datahub-incident-response/`](skills/datahub-incident-response/) → upstream PR [#61](https://github.com/datahub-project/datahub-skills/pull/61) (open; merge needs a DataHub maintainer).
 
 ## MTTR flywheel results
 
@@ -127,7 +127,8 @@ Recordings: [`backend/app/events/recordings/`](backend/app/events/recordings/)
 | Postmortems | [`examples/postmortems/`](examples/postmortems/) |
 | Assertions | [`examples/assertions/`](examples/assertions/) |
 | ML risk reports | [`examples/risk_reports/`](examples/risk_reports/) |
-| MTTR report | [`examples/mttr_report.json`](examples/mttr_report.json) |
+| MTTR report (honest labels) | [`examples/mttr_report.json`](examples/mttr_report.json) |
+| MCP transcripts (redacted) | [`examples/datahub-transcripts/`](examples/datahub-transcripts/) |
 
 ## Docs
 

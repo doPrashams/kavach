@@ -59,9 +59,9 @@ with zero API keys for judges.
 
 ## What's next
 
-- Start DataHub Cloud 21-day trial Aug 10–11 for judging + Ask DataHub beat
-- Record 3-min video; submit Devpost early; join `#agent-hackathon`
-- Merge skill PR; optional healthcare DuckDB warehouse seed (H25)
+- DataHub Cloud 21-day trial **Aug 10–11 only** (covers judging Aug 17–31) + optional Ask DataHub beat
+- Merge skill PR when a maintainer approves: https://github.com/datahub-project/datahub-skills/pull/61
+- Optional healthcare DuckDB warehouse seed (H25 metadata-only today)
 
 ## Built with
 
